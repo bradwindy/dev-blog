@@ -19,10 +19,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Dev Blog",
-    template: "%s | Dev Blog",
+    default: "Bradley Windybank",
+    template: "%s | Bradley Windybank",
   },
-  description: "A developer blog about software engineering",
+  description: "A blog about software development, AI, iOS, and thoughts on building sometimes great software.",
 };
 
 export default function RootLayout({
