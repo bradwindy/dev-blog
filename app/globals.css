@@ -126,3 +126,26 @@
     @apply mx-auto px-4 md:px-6 lg:px-8;
   }
 }
+
+/* Code block styling for rehype-pretty-code */
+[data-rehype-pretty-code-figure] {
+  @apply my-6 overflow-hidden rounded-lg;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  @apply overflow-x-auto py-4 px-4;
+}
+
+[data-rehype-pretty-code-figure] code {
+  @apply text-sm leading-relaxed;
+}
+
+/* Inline code styling */
+.prose :where(code):not(:where([class~="not-prose"] *)):not(pre code) {
+  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.prose :where(code):not(:where([class~="not-prose"] *)):not(pre code)::before,
+.prose :where(code):not(:where([class~="not-prose"] *)):not(pre code)::after {
+  content: none;
+}
