@@ -5,6 +5,7 @@ import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/posts";
 import { Badge } from "@/components/ui/badge";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 import { PostCard } from "@/components/blog/post-card";
+import { ShareButtons } from "@/components/blog/share-buttons";
 import { ArticleJsonLd } from "@/components/json-ld";
 import type { Metadata } from "next";
 
@@ -140,6 +141,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             <Content />
           </div>
+
+          <ShareButtons title={post.frontmatter.title} slug={post.slug} />
         </article>
 
         <aside className="hidden lg:block w-64 shrink-0">
