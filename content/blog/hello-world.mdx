@@ -23,7 +23,7 @@ I'll be writing about:
 
 ## Tech Stack
 
-This blog is built with:
+This blog is built with a modern tech stack that prioritizes developer experience and performance:
 
 ```typescript
 const techStack = {
@@ -31,7 +31,82 @@ const techStack = {
   content: "MDX",
   styling: "Tailwind CSS",
   hosting: "Vercel",
+  features: [
+    "Server Components",
+    "App Router",
+    "Static Generation",
+    "Dark Mode",
+  ],
 };
 ```
 
-Stay tuned for more content!
+### Why Next.js?
+
+Next.js provides an excellent foundation for content-focused websites. With the App Router and React Server Components, we get:
+
+1. **Fast initial page loads** - Server-rendered HTML
+2. **Seamless navigation** - Client-side routing after hydration
+3. **Excellent SEO** - Static generation with dynamic metadata
+4. **Developer experience** - Hot reloading, TypeScript support, and more
+
+<Callout type="info">
+All code examples in this blog are syntax highlighted using Shiki with the GitHub Dark theme.
+</Callout>
+
+## Code Examples
+
+Here's a quick example of a React component:
+
+```tsx
+interface ButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  variant?: "primary" | "secondary";
+}
+
+export function Button({ children, onClick, variant = "primary" }: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-md ${
+        variant === "primary"
+          ? "bg-blue-500 text-white"
+          : "bg-gray-200 text-gray-800"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+And here's some Python for variety:
+
+```python
+def fibonacci(n: int) -> list[int]:
+    """Generate the first n Fibonacci numbers."""
+    if n <= 0:
+        return []
+    if n == 1:
+        return [0]
+
+    sequence = [0, 1]
+    while len(sequence) < n:
+        sequence.append(sequence[-1] + sequence[-2])
+
+    return sequence
+
+# Example usage
+print(fibonacci(10))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+```
+
+## What's Next?
+
+Stay tuned for more content! I have several posts planned covering:
+
+- Building a modern blog with Next.js and MDX
+- iOS development with SwiftUI
+- AI and machine learning integrations
+- Developer productivity tips
+
+Feel free to explore the blog and check out the [Tags](/tags) page to find content by topic.
