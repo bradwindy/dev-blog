@@ -138,7 +138,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
           </header>
 
-          <div className="prose prose-neutral dark:prose-invert max-w-none">
+          <div className="prose prose-neutral dark:prose-invert max-w-none py-8 border-t border-b">
             <Content />
           </div>
 
