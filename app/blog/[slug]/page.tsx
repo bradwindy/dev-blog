@@ -29,6 +29,11 @@ export async function generateMetadata({
     return {};
   }
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+  const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(
+    post.frontmatter.title
+  )}&description=${encodeURIComponent(post.frontmatter.description)}`;
+
   return {
     title: post.frontmatter.title,
     description: post.frontmatter.description,
@@ -39,6 +44,20 @@ export async function generateMetadata({
       publishedTime: post.frontmatter.publishedAt,
       modifiedTime: post.frontmatter.updatedAt,
       tags: post.frontmatter.tags,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.frontmatter.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.frontmatter.title,
+      description: post.frontmatter.description,
+      images: [ogImage],
     },
   };
 }
