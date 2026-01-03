@@ -110,3 +110,240 @@ Stay tuned for more content! I have several posts planned covering:
 - Developer productivity tips
 
 Feel free to explore the blog and check out the [Tags](/tags) page to find content by topic.
+
+---
+
+## Formatting Showcase
+
+This section demonstrates the various formatting options available in MDX blog posts.
+
+### Text Formatting
+
+Regular paragraph text looks like this. You can make text **bold** or *italic* or ***both bold and italic***. You can also use ~~strikethrough~~ for deleted content. Inline `code` appears with a distinct background.
+
+Here's another paragraph to show spacing between paragraphs. Good typography requires proper breathing room between blocks of text. This helps readability and makes the content feel less cramped.
+
+### Blockquotes
+
+> "The best way to predict the future is to invent it."
+> — Alan Kay
+
+Blockquotes can also span multiple paragraphs:
+
+> This is the first paragraph of a longer quote.
+>
+> And this is the second paragraph. Notice how the quote mark continues on the left edge.
+
+### Lists
+
+#### Unordered Lists
+
+- First item in an unordered list
+- Second item with some more text to show wrapping behavior when the line gets long enough to wrap to the next line
+- Third item
+  - Nested item one
+  - Nested item two
+    - Even deeper nesting
+    - Another deep item
+  - Back to second level
+- Fourth item at root level
+
+#### Ordered Lists
+
+1. First step in a process
+2. Second step with detailed explanation that might span multiple lines to demonstrate how numbered lists handle longer content
+3. Third step
+   1. Sub-step A
+   2. Sub-step B
+   3. Sub-step C
+4. Fourth step
+5. Fifth step
+
+#### Task Lists
+
+- [x] Set up Next.js project
+- [x] Configure MDX support
+- [x] Add syntax highlighting
+- [ ] Write more blog posts
+- [ ] Add search functionality
+- [ ] Implement comments
+
+#### Mixed Lists
+
+1. **Planning Phase**
+   - Define requirements
+   - Create wireframes
+   - Review with stakeholders
+
+2. **Development Phase**
+   - Set up project structure
+   - Implement core features
+   - Write tests
+
+3. **Deployment Phase**
+   - Configure CI/CD
+   - Deploy to staging
+   - Final review and production release
+
+### Headings Hierarchy
+
+The following demonstrates all heading levels:
+
+## Heading Level 2 (H2)
+
+This is content under an H2 heading.
+
+### Heading Level 3 (H3)
+
+This is content under an H3 heading.
+
+#### Heading Level 4 (H4)
+
+This is content under an H4 heading. H4s are useful for subsections within H3s.
+
+##### Heading Level 5 (H5)
+
+Content under H5 - less commonly used but available when needed.
+
+###### Heading Level 6 (H6)
+
+The smallest heading level. Rarely used but sometimes helpful for fine-grained organization.
+
+### Tables
+
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Blog posts | Complete | High |
+| Tags | Complete | High |
+| RSS Feed | Complete | Medium |
+| Search | Planned | Medium |
+| Comments | Planned | Low |
+
+Tables can also have alignment:
+
+| Left Aligned | Center Aligned | Right Aligned |
+|:-------------|:--------------:|--------------:|
+| Text | Text | Text |
+| More | More | More |
+| Data | Data | 123.45 |
+
+### Links
+
+Here's an [inline link](https://nextjs.org) to the Next.js website. You can also use [links with titles](https://nextjs.org "Next.js Homepage") that show tooltips on hover.
+
+External links: [GitHub](https://github.com), [Vercel](https://vercel.com), [Tailwind CSS](https://tailwindcss.com)
+
+Internal links: [Home](/), [Blog](/blog), [Tags](/tags)
+
+### Horizontal Rules
+
+Use horizontal rules to separate major sections:
+
+---
+
+Content after the rule.
+
+---
+
+Another section after another rule.
+
+### More Code Examples
+
+Here's a shell command:
+
+```bash
+npm install @next/mdx remark-gfm rehype-pretty-code
+```
+
+A JSON configuration:
+
+```json
+{
+  "name": "my-blog",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  }
+}
+```
+
+CSS styling:
+
+```css
+.prose {
+  max-width: 65ch;
+  color: var(--foreground);
+}
+
+.prose h2 {
+  margin-top: 2em;
+  margin-bottom: 1em;
+  font-weight: 700;
+}
+```
+
+SQL query:
+
+```sql
+SELECT posts.title, posts.published_at, authors.name
+FROM posts
+INNER JOIN authors ON posts.author_id = authors.id
+WHERE posts.draft = false
+ORDER BY posts.published_at DESC
+LIMIT 10;
+```
+
+Swift code:
+
+```swift
+struct ContentView: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack {
+            Text("Count: \(count)")
+                .font(.largeTitle)
+
+            Button("Increment") {
+                count += 1
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+    }
+}
+```
+
+<Callout type="warning">
+Be careful when copying code examples directly into production. Always review and understand the code first!
+</Callout>
+
+### Callout Variations
+
+<Callout type="tip">
+**Pro tip:** Use keyboard shortcuts to speed up your workflow. On macOS, `Cmd + Shift + P` opens the command palette in VS Code.
+</Callout>
+
+<Callout type="info">
+This is an informational callout. It's useful for providing additional context or background information that supplements the main content.
+</Callout>
+
+<Callout type="warning">
+Warning callouts draw attention to potential issues or things the reader should be careful about.
+</Callout>
+
+### Long Paragraph Example
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida. Duis ac tellus et risus vulputate vehicula. Donec lobortis risus a elit.
+
+---
+
+## Wrapping Up
+
+That covers the main formatting options available in this blog. MDX makes it easy to combine Markdown with React components for rich, interactive content.
+
+Thanks for reading!
