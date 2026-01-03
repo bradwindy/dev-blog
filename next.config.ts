@@ -1,10 +1,5 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
-import rehypePrettyCode from "rehype-pretty-code";
-import rehypeSlug from "rehype-slug";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import remarkGfm from "remark-gfm";
-import remarkFrontmatter from "remark-frontmatter";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
@@ -12,12 +7,12 @@ const nextConfig: NextConfig = {
 
 const withMDX = createMDX({
   options: {
-    remarkPlugins: [remarkGfm, remarkFrontmatter],
+    remarkPlugins: ["remark-gfm", "remark-frontmatter"],
     rehypePlugins: [
-      rehypeSlug,
-      [rehypeAutolinkHeadings, { behavior: "wrap" }],
+      "rehype-slug",
+      ["rehype-autolink-headings", { behavior: "wrap" }],
       [
-        rehypePrettyCode,
+        "rehype-pretty-code",
         {
           theme: "github-dark",
           keepBackground: true,
