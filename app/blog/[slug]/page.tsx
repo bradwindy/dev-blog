@@ -5,6 +5,7 @@ import { getAllPosts, getPostBySlug, getRelatedPosts } from "@/lib/posts";
 import { Badge } from "@/components/ui/badge";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 import { PostCard } from "@/components/blog/post-card";
+import { ArticleJsonLd } from "@/components/json-ld";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {
@@ -75,6 +76,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
   return (
     <div className="container py-10">
+      <ArticleJsonLd post={post} />
       <Link
         href="/blog"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"

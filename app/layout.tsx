@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { Analytics } from "@vercel/analytics/react";
+import { WebsiteJsonLd } from "@/components/json-ld";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,6 +42,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Header />
+          <WebsiteJsonLd />
           <main className="flex-1">{children}</main>
           <Footer />
           <Analytics />
