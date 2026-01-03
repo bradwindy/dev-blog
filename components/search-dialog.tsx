@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import Fuse from "fuse.js";
@@ -22,26 +22,27 @@ interface SearchDialogProps {
 export function SearchDialog({ posts }: SearchDialogProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<PostMeta[]>([]);
   const router = useRouter();
 
-  const fuse = new Fuse(posts, {
-    keys: [
-      { name: "frontmatter.title", weight: 2 },
-      { name: "frontmatter.description", weight: 1.5 },
-      { name: "frontmatter.tags", weight: 1 },
-    ],
-    threshold: 0.3,
-  });
+  const fuse = useMemo(
+    () =>
+      new Fuse(posts, {
+        keys: [
+          { name: "frontmatter.title", weight: 2 },
+          { name: "frontmatter.description", weight: 1.5 },
+          { name: "frontmatter.tags", weight: 1 },
+        ],
+        threshold: 0.3,
+      }),
+    [posts]
+  );
 
-  useEffect(() => {
+  const results = useMemo(() => {
     if (!query.trim()) {
-      setResults([]);
-      return;
+      return [];
     }
-    const searchResults = fuse.search(query);
-    setResults(searchResults.map((r) => r.item));
-  }, [query]);
+    return fuse.search(query).map((r) => r.item);
+  }, [query, fuse]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {

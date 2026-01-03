@@ -14,7 +14,7 @@ export default function AboutPage() {
         </h1>
         <div className="prose prose-neutral dark:prose-invert">
           <p>
-            Hi! I'm a software developer passionate about building great
+            Hi! I&apos;m a software developer passionate about building great
             software and sharing what I learn along the way.
           </p>
 
@@ -32,7 +32,7 @@ export default function AboutPage() {
               <strong>Quick Tips</strong> - Short, actionable development tips
             </li>
             <li>
-              <strong>Project Showcases</strong> - Walkthroughs of projects I'm
+              <strong>Project Showcases</strong> - Walkthroughs of projects I&apos;m
               working on
             </li>
           </ul>
@@ -60,7 +60,7 @@ export default function AboutPage() {
 
           <h2>About This Blog</h2>
           <p>
-            This blog is built with Next.js 15, MDX, and Tailwind CSS. It's
+            This blog is built with Next.js 15, MDX, and Tailwind CSS. It&apos;s
             hosted on Vercel. The source code is available on GitHub.
           </p>
         </div>

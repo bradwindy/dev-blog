@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 
 interface TocItem {
@@ -9,18 +9,36 @@ interface TocItem {
   level: number;
 }
 
+function getHeadingsSnapshot(): TocItem[] {
+  if (typeof document === "undefined") return [];
+  const elements = document.querySelectorAll("article h2, article h3");
+  return Array.from(elements).map((element) => ({
+    id: element.id,
+    text: element.textContent || "",
+    level: element.tagName === "H2" ? 2 : 3,
+  }));
+}
+
+function getServerSnapshot(): TocItem[] {
+  return [];
+}
+
+function subscribeToHeadings(_callback: () => void): () => void {
+  // No-op subscription - headings don't change dynamically
+  // This is just for initial hydration
+  return () => {};
+}
+
 export function TableOfContents() {
-  const [headings, setHeadings] = useState<TocItem[]>([]);
+  const headings = useSyncExternalStore(
+    subscribeToHeadings,
+    getHeadingsSnapshot,
+    getServerSnapshot
+  );
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
     const elements = document.querySelectorAll("article h2, article h3");
-    const items: TocItem[] = Array.from(elements).map((element) => ({
-      id: element.id,
-      text: element.textContent || "",
-      level: element.tagName === "H2" ? 2 : 3,
-    }));
-    setHeadings(items);
 
     const observer = new IntersectionObserver(
       (entries) => {
