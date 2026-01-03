@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 interface TocItem {
@@ -9,34 +9,32 @@ interface TocItem {
   level: number;
 }
 
-function getHeadingsSnapshot(): TocItem[] {
-  if (typeof document === "undefined") return [];
-  const elements = document.querySelectorAll("article h2, article h3");
-  return Array.from(elements).map((element) => ({
-    id: element.id,
-    text: element.textContent || "",
-    level: element.tagName === "H2" ? 2 : 3,
-  }));
-}
-
-function getServerSnapshot(): TocItem[] {
-  return [];
-}
-
-function subscribeToHeadings(_callback: () => void): () => void {
-  // No-op subscription - headings don't change dynamically
-  // This is just for initial hydration
-  return () => {};
-}
-
 export function TableOfContents() {
-  const headings = useSyncExternalStore(
-    subscribeToHeadings,
-    getHeadingsSnapshot,
-    getServerSnapshot
-  );
+  const [headings, setHeadings] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
+  const hasInitialized = useRef(false);
 
+  const extractHeadings = useCallback(() => {
+    const elements = document.querySelectorAll("article h2, article h3");
+    return Array.from(elements).map((element) => ({
+      id: element.id,
+      text: element.textContent || "",
+      level: element.tagName === "H2" ? 2 : 3,
+    }));
+  }, []);
+
+  // Extract headings once on mount using requestAnimationFrame
+  // to defer the setState call outside the synchronous effect
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
+    requestAnimationFrame(() => {
+      setHeadings(extractHeadings());
+    });
+  }, [extractHeadings]);
+
+  // Track active heading via intersection observer
   useEffect(() => {
     const elements = document.querySelectorAll("article h2, article h3");
 
