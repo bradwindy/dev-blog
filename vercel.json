@@ -1,0 +1,48 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "windybank.net"
+        }
+      ],
+      "destination": "https://www.windybank.net/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "bradley.windybank.net"
+        }
+      ],
+      "destination": "https://www.windybank.net/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "windybank.nz"
+        }
+      ],
+      "destination": "https://www.windybank.net/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.windybank.nz"
+        }
+      ],
+      "destination": "https://www.windybank.net/:path*",
+      "permanent": true
+    }
+  ]
+}
