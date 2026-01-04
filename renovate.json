@@ -2,5 +2,47 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
-  ]
+  ],
+  "labels": ["dependencies"],
+  "rangeStrategy": "pin",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": "!/^0/",
+      "automerge": true
+    },
+    {
+      "groupName": "React",
+      "matchPackagePatterns": ["^react", "^@types/react"]
+    },
+    {
+      "groupName": "Next.js",
+      "matchPackagePatterns": ["^next", "^@next/", "^eslint-config-next"]
+    },
+    {
+      "groupName": "MDX",
+      "matchPackagePatterns": ["^@mdx-js/", "^@next/mdx", "^@types/mdx"]
+    },
+    {
+      "groupName": "Tailwind CSS",
+      "matchPackagePatterns": ["^tailwindcss", "^@tailwindcss/"]
+    },
+    {
+      "groupName": "Radix UI",
+      "matchPackagePatterns": ["^@radix-ui/"]
+    },
+    {
+      "groupName": "Vercel",
+      "matchPackagePatterns": ["^@vercel/"]
+    },
+    {
+      "groupName": "Rehype plugins",
+      "matchPackagePatterns": ["^rehype-"]
+    },
+    {
+      "groupName": "Remark plugins",
+      "matchPackagePatterns": ["^remark-"]
+    }
+  ],
+  "schedule": ["before 9am on monday"]
 }
