@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <div className="container py-10">
       <div className="max-w-2xl mx-auto">
-        <h1 className="font-heading text-4xl tracking-tight lg:text-5xl mb-8">
+        <h1 className="font-display text-4xl tracking-tight lg:text-5xl mb-8">
           About
         </h1>
         <div className="prose prose-neutral dark:prose-invert">

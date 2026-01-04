@@ -14,7 +14,7 @@ export default function TagsPage() {
   return (
     <div className="container py-10">
       <div className="flex flex-col items-start gap-4">
-        <h1 className="inline-block font-heading text-4xl tracking-tight lg:text-5xl">
+        <h1 className="inline-block font-display text-4xl tracking-tight lg:text-5xl">
           Tags
         </h1>
         <p className="text-xl text-muted-foreground">

@@ -113,7 +113,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 Draft
               </Badge>
             )}
-            <h1 className="text-4xl font-bold tracking-tight lg:text-5xl mb-4">
+            <h1 className="font-display text-4xl tracking-tight lg:text-5xl mb-4">
               {post.frontmatter.title}
             </h1>
             <div className="flex flex-wrap items-center gap-2 text-muted-foreground mb-4">
