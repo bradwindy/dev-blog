@@ -18,9 +18,14 @@ export async function generateMetadata({
   params,
 }: TagPageProps): Promise<Metadata> {
   const { tag } = await params;
+  const decodedTag = decodeURIComponent(tag);
+
   return {
-    title: `Posts tagged "${tag}"`,
-    description: `Browse all posts tagged with ${tag}`,
+    title: `#${decodedTag}`,
+    description: `All posts tagged with ${decodedTag}`,
+    alternates: {
+      canonical: `/tags/${tag}`,
+    },
   };
 }
 
