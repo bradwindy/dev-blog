@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { TableOfContents } from "@/components/blog/table-of-contents";
 import { PostCard } from "@/components/blog/post-card";
 import { ShareButtons } from "@/components/blog/share-buttons";
-import { ArticleJsonLd } from "@/components/json-ld";
+import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/json-ld";
 import type { Metadata } from "next";
 
 interface BlogPostPageProps {
@@ -97,9 +97,18 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     `@/content/blog/${slug}.mdx`
   );
 
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+
   return (
     <div className="container py-10">
       <ArticleJsonLd post={post} />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: SITE_URL },
+          { name: "Blog", url: `${SITE_URL}/blog` },
+          { name: post.frontmatter.title }, // No URL - user is on this page
+        ]}
+      />
       <Link
         href="/blog"
         className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-8"

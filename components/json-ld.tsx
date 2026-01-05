@@ -89,3 +89,38 @@ export function PersonJsonLd() {
     />
   );
 }
+
+interface BreadcrumbItem {
+  name: string;
+  url?: string; // Optional - omit for last item
+}
+
+interface BreadcrumbJsonLdProps {
+  items: BreadcrumbItem[];
+}
+
+export function BreadcrumbJsonLd({ items }: BreadcrumbJsonLdProps) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => {
+      const listItem: Record<string, unknown> = {
+        "@type": "ListItem",
+        position: index + 1,
+        name: item.name,
+      };
+      // Only add item URL if provided (omit for last breadcrumb)
+      if (item.url) {
+        listItem.item = item.url;
+      }
+      return listItem;
+    }),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}
