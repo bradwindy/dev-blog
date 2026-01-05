@@ -1,6 +1,7 @@
 import { getAllPosts } from "@/lib/posts";
 import { PostCard } from "@/components/blog/post-card";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -23,6 +24,12 @@ export default function BlogPage() {
           <p className="text-xl text-muted-foreground">
             Thoughts on software development, tutorials, and more.
           </p>
+          <Link
+            href="/tags"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Browse by tags &rarr;
+          </Link>
         </div>
       </div>
       <hr className="my-8" />

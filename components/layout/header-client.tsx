@@ -25,10 +25,10 @@ export function HeaderClient({ posts }: HeaderClientProps) {
               Blog
             </Link>
             <Link
-              href="/tags"
+              href="/contact"
               className="transition-colors hover:text-foreground/80 text-foreground/60"
             >
-              Tags
+              Contact
             </Link>
             <Link
               href="/about"

@@ -28,7 +28,7 @@ export function Footer() {
             </svg>
           </Link>
           <Link
-            href="https://github.com"
+            href="https://github.com/bradwindy"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground"
