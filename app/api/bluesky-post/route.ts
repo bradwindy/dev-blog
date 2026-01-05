@@ -4,7 +4,7 @@ import { postToBluesky } from "@/lib/bluesky";
 import { getNewPosts, markPostAsPosted } from "@/lib/manifest";
 
 const WEBHOOK_SECRET = process.env.BLUESKY_WEBHOOK_SECRET;
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.windybank.net";
 
 export async function POST(request: NextRequest) {
   // Verify webhook secret

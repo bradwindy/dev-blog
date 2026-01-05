@@ -29,7 +29,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://example.com"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.windybank.net"),
   title: {
     default: "Bradley Windybank",
     template: "%s | Bradley Windybank",

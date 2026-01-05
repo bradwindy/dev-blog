@@ -30,7 +30,7 @@ export async function generateMetadata({
     return {};
   }
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.windybank.net";
   const ogImage = `${SITE_URL}/api/og?title=${encodeURIComponent(
     post.frontmatter.title
   )}&description=${encodeURIComponent(post.frontmatter.description)}`;
@@ -97,7 +97,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     `@/content/blog/${slug}.mdx`
   );
 
-  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://example.com";
+  const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.windybank.net";
 
   return (
     <div className="container py-10">
