@@ -16,7 +16,7 @@ export default function HomePage() {
 
   return (
     <div className="container py-10">
-      <section className="space-y-6 pb-8 pt-6 md:pb-12 md:pt-10 lg:py-32">
+      <section className="space-y-6 pb-8 pt-2 md:pb-12 md:pt-10 lg:py-32">
         <div className="flex max-w-[64rem] flex-col items-start gap-4">
           <h1 className="font-display text-3xl sm:text-5xl md:text-6xl lg:text-7xl">
             Welcome
