@@ -9,19 +9,21 @@ interface ArticleJsonLdProps {
 export function ArticleJsonLd({ post }: ArticleJsonLdProps) {
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "BlogPosting",
     headline: post.frontmatter.title,
     description: post.frontmatter.description,
     datePublished: post.frontmatter.publishedAt,
     dateModified: post.frontmatter.updatedAt || post.frontmatter.publishedAt,
+    articleSection: "Technology",
     author: {
       "@type": "Person",
-      name: "Your Name",
+      "@id": `${SITE_URL}/about#person`,
+      name: "Bradley Windybank",
       url: `${SITE_URL}/about`,
     },
     publisher: {
       "@type": "Organization",
-      name: "Dev Blog",
+      name: "Bradley Windybank",
       url: SITE_URL,
     },
     mainEntityOfPage: {
@@ -43,9 +45,9 @@ export function WebsiteJsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Dev Blog",
+    name: "Bradley Windybank",
     url: SITE_URL,
-    description: "A developer blog about software engineering",
+    description: "A blog about software development, AI, iOS, and thoughts on building sometimes great software.",
     potentialAction: {
       "@type": "SearchAction",
       target: {
