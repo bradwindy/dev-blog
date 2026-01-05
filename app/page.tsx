@@ -3,6 +3,13 @@ import { ArrowRight } from "lucide-react";
 import { getAllPosts } from "@/lib/posts";
 import { PostCard } from "@/components/blog/post-card";
 import { Button } from "@/components/ui/button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 export default function HomePage() {
   const posts = getAllPosts().slice(0, 4);

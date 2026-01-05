@@ -6,6 +6,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Tags",
   description: "Browse all tags",
+  alternates: {
+    canonical: "/tags",
+  },
 };
 
 export default function TagsPage() {

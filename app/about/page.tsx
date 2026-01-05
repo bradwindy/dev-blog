@@ -4,6 +4,9 @@ import { PersonJsonLd } from "@/components/json-ld";
 export const metadata: Metadata = {
   title: "About",
   description: "Learn more about me and this blog",
+  alternates: {
+    canonical: "/about",
+  },
 };
 
 export default function AboutPage() {
