@@ -65,3 +65,27 @@ export function WebsiteJsonLd() {
     />
   );
 }
+
+export function PersonJsonLd() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE_URL}/about#person`,
+    name: "Bradley Windybank",
+    url: `${SITE_URL}/about`,
+    sameAs: [
+      "https://github.com/bradwindy",
+      "https://bsky.app/profile/bradwindy.bsky.social",
+    ],
+    jobTitle: "Software Developer",
+    knowsAbout: ["Software Development", "iOS", "AI", "Web Development"],
+    description: "A software developer passionate about building great software and sharing knowledge.",
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}

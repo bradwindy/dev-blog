@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PersonJsonLd } from "@/components/json-ld";
 
 export const metadata: Metadata = {
   title: "About",
@@ -7,7 +8,9 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="container py-10">
+    <>
+      <PersonJsonLd />
+      <div className="container py-10">
       <div className="max-w-2xl mx-auto">
         <h1 className="font-display text-4xl tracking-tight lg:text-5xl mb-8">
           About
@@ -65,6 +68,7 @@ export default function AboutPage() {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
