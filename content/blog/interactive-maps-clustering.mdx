@@ -1,0 +1,168 @@
+---
+title: "Interactive Maps at Scale: Clustering 900+ Markers"
+description: "Performance techniques for rendering hundreds of map markers with Leaflet and React."
+publishedAt: 2026-01-16
+tags: ["React", "Leaflet", "performance"]
+draft: false
+---
+
+Rendering 900 markers on a map sounds simple—until it isn't. Without optimization, the page freezes. Here's how to make it fast.
+
+## The Problem
+
+```tsx
+// Don't do this with 900 markers
+{cameras.map(camera => (
+  <Marker key={camera.id} position={[camera.lat, camera.lng]} />
+))}
+```
+
+Each marker is a DOM element. 900 DOM elements updating on pan/zoom = browser death.
+
+## Solution: Marker Clustering
+
+Group nearby markers into clusters:
+
+```tsx
+import MarkerClusterGroup from 'react-leaflet-cluster';
+
+<MapContainer center={center} zoom={6}>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+  <MarkerClusterGroup
+    chunkedLoading
+    maxClusterRadius={60}
+    spiderfyOnMaxZoom
+    showCoverageOnHover={false}
+  >
+    {cameras.map(camera => (
+      <Marker key={camera.id} position={[camera.lat, camera.lng]}>
+        <Popup>{camera.name}</Popup>
+      </Marker>
+    ))}
+  </MarkerClusterGroup>
+</MapContainer>
+```
+
+<Callout type="tip">
+`chunkedLoading` spreads marker processing across frames, preventing UI freezes during initial load.
+</Callout>
+
+## Custom Cluster Icons
+
+Default clusters are boring. Add context:
+
+```tsx
+const createClusterIcon = (cluster: MarkerCluster) => {
+  const count = cluster.getChildCount();
+  const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+
+  return L.divIcon({
+    html: `<div class="cluster-icon cluster-${size}">${count}</div>`,
+    className: 'custom-cluster',
+    iconSize: L.point(40, 40),
+  });
+};
+
+<MarkerClusterGroup iconCreateFunction={createClusterIcon}>
+```
+
+## Custom Marker Icons
+
+SVG markers are sharper and more flexible than images:
+
+```tsx
+const createMarkerIcon = (camera: Camera) => {
+  const color = getColorForType(camera.type);
+
+  const svg = `
+    <svg width="25" height="41" viewBox="0 0 25 41">
+      <path d="M12.5 0C5.6 0 0 5.6 0 12.5C0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0Z"
+            fill="${color}"/>
+      <circle cx="12.5" cy="12.5" r="6" fill="white"/>
+    </svg>
+  `;
+
+  return L.divIcon({
+    html: svg,
+    className: 'custom-marker',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41],
+  });
+};
+```
+
+## Dynamic Imports
+
+Leaflet doesn't work with SSR. Dynamic import solves this:
+
+```tsx
+// CameraMap.tsx
+const CameraMap = dynamic(
+  () => import('./CameraMapClient'),
+  {
+    ssr: false,
+    loading: () => <MapSkeleton />
+  }
+);
+```
+
+Add webpack prefetch for faster subsequent loads:
+
+```tsx
+const CameraMap = dynamic(
+  () => import(/* webpackPrefetch: true */ './CameraMapClient'),
+  { ssr: false }
+);
+```
+
+## Filtering Performance
+
+Filter before rendering, not during:
+
+```tsx
+const [filters, setFilters] = useState({ type: null, region: null });
+
+const filteredCameras = useMemo(() => {
+  return cameras.filter(camera => {
+    if (filters.type && camera.type !== filters.type) return false;
+    if (filters.region && camera.region !== filters.region) return false;
+    return true;
+  });
+}, [cameras, filters]);
+
+// Only render filtered markers
+<MarkerClusterGroup>
+  {filteredCameras.map(camera => (
+    <Marker key={camera.id} ... />
+  ))}
+</MarkerClusterGroup>
+```
+
+<Callout type="warning">
+Don't filter inside the render loop. useMemo ensures filtering only runs when filters change.
+</Callout>
+
+## Theme-Aware Tiles
+
+Switch tile providers based on theme:
+
+```tsx
+const { theme } = useTheme();
+
+const tileUrl = theme === 'dark'
+  ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+  : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+<TileLayer url={tileUrl} />
+```
+
+## Performance Checklist
+
+- [ ] Use marker clustering
+- [ ] Enable chunked loading
+- [ ] Custom icons with SVG (not images)
+- [ ] Dynamic import with SSR disabled
+- [ ] Memoize filtered data
+- [ ] Lazy load map component
+
+With these optimizations, 900 markers render smoothly on mobile devices.
