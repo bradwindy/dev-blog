@@ -1,0 +1,208 @@
+---
+title: "Project Generation with Tuist"
+description: "How to define iOS projects as Swift code, with reusable templates and consistent configuration."
+publishedAt: 2026-01-14
+tags: ["iOS", "Tuist", "tooling"]
+draft: false
+---
+
+Xcode projects are notoriously hard to merge. `.xcodeproj` files are XML that git can't resolve sensibly. Tuist solves this by generating projects from Swift code.
+
+## Why Tuist?
+
+1. **Mergeable configs**: Swift files merge cleanly
+2. **Reusable templates**: Define patterns once, use everywhere
+3. **Consistent settings**: No more "works on my machine"
+4. **Type safety**: Catch config errors at generation time
+
+## Project Structure
+
+```
+MyApp/
+├── Project.swift          # Main project definition
+├── Tuist/
+│   ├── Package.swift      # Dependencies
+│   ├── Tuist.swift        # Tuist configuration
+│   └── ProjectDescriptionHelpers/
+│       └── Project+Templates.swift
+├── MyApp/
+│   └── Sources/
+└── MyAppTests/
+    └── Sources/
+```
+
+## Basic Project.swift
+
+```swift
+import ProjectDescription
+
+let project = Project(
+    name: "MyApp",
+    organizationName: "Windybank",
+    targets: [
+        .target(
+            name: "MyApp",
+            destinations: [.iPhone, .iPad],
+            product: .app,
+            bundleId: "net.windybank.MyApp",
+            deploymentTargets: .iOS("17.0"),
+            infoPlist: .extendingDefault(with: [
+                "UILaunchStoryboardName": "LaunchScreen",
+            ]),
+            sources: ["MyApp/Sources/**"],
+            resources: ["MyApp/Resources/**"],
+            dependencies: [
+                .external(name: "Alamofire"),
+            ]
+        ),
+        .target(
+            name: "MyAppTests",
+            destinations: [.iPhone, .iPad],
+            product: .unitTests,
+            bundleId: "net.windybank.MyApp.tests",
+            sources: ["MyAppTests/**"],
+            dependencies: [
+                .target(name: "MyApp"),
+            ]
+        ),
+    ]
+)
+```
+
+## Adding Dependencies
+
+Define in `Tuist/Package.swift`:
+
+```swift
+// Tuist/Package.swift
+import PackageDescription
+
+let package = Package(
+    name: "Dependencies",
+    dependencies: [
+        .package(url: "https://github.com/Alamofire/Alamofire", from: "5.11.0"),
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0"),
+    ]
+)
+```
+
+<Callout type="tip">
+Tuist resolves SPM packages once, then caches them. Much faster than Xcode's resolution.
+</Callout>
+
+## Reusable Templates
+
+Create helpers in `ProjectDescriptionHelpers/`:
+
+```swift
+// Project+Templates.swift
+import ProjectDescription
+
+extension Project {
+    public static func app(
+        name: String,
+        bundleIdPrefix: String = "net.windybank",
+        destinations: Destinations = [.iPhone, .iPad],
+        dependencies: [TargetDependency] = []
+    ) -> Project {
+        Project(
+            name: name,
+            organizationName: "Windybank",
+            settings: .settings(base: baseSettings),
+            targets: [
+                .appTarget(name: name, bundleIdPrefix: bundleIdPrefix,
+                          destinations: destinations, dependencies: dependencies),
+                .testTarget(name: "\(name)Tests", bundleIdPrefix: bundleIdPrefix,
+                           destinations: destinations, appName: name),
+            ],
+            schemes: [
+                .appScheme(name: name),
+            ]
+        )
+    }
+}
+
+private let baseSettings: SettingsDictionary = [
+    "SWIFT_VERSION": "6.0",
+    "SWIFT_STRICT_CONCURRENCY": "complete",
+]
+```
+
+Now `Project.swift` is just:
+
+```swift
+import ProjectDescription
+import ProjectDescriptionHelpers
+
+let project = Project.app(
+    name: "MyApp",
+    dependencies: [
+        .external(name: "Alamofire"),
+    ]
+)
+```
+
+## Generating the Project
+
+```bash
+# Install Tuist
+curl -Ls https://install.tuist.io | bash
+
+# Generate Xcode project
+tuist generate
+
+# Open in Xcode
+open MyApp.xcworkspace
+```
+
+## Multi-Platform Support
+
+```swift
+.target(
+    name: "MyApp",
+    destinations: [.iPhone, .iPad, .mac, .appleTV],
+    // ...
+)
+```
+
+Tuist handles the conditional compilation automatically.
+
+## Schemes with Coverage
+
+```swift
+extension Scheme {
+    public static func appScheme(name: String) -> Scheme {
+        Scheme(
+            name: name,
+            shared: true,
+            buildAction: .buildAction(targets: [.target(name)]),
+            testAction: .targets(
+                [.target("\(name)Tests")],
+                configuration: .debug,
+                options: .options(coverage: true)
+            ),
+            runAction: .runAction(configuration: .debug)
+        )
+    }
+}
+```
+
+## Benefits I've Seen
+
+- **Zero merge conflicts** on project files
+- **Consistent settings** across 5 iOS projects
+- **Faster CI** with cached dependencies
+- **Type-safe configuration** catches errors early
+
+<Callout type="warning">
+Tuist-generated projects shouldn't be committed. Add `*.xcodeproj` and `*.xcworkspace` to `.gitignore`.
+</Callout>
+
+## Getting Started
+
+1. Install Tuist
+2. Run `tuist init` in your project
+3. Move sources to match Tuist's expectations
+4. Generate and verify
+
+Start simple, add templates as patterns emerge.
