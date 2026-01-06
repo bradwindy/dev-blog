@@ -1,0 +1,183 @@
+---
+title: "Live Activities in iOS: From Concept to Lock Screen"
+description: "A practical guide to implementing Live Activities with ActivityKit, including navigation display and Dynamic Island integration."
+publishedAt: 2026-01-08
+tags: ["iOS", "SwiftUI", "ActivityKit"]
+draft: false
+---
+
+Live Activities display real-time information on the Lock Screen and Dynamic Island. Here's how I implemented them for GPS track recording in TopographicNZ.
+
+## What You'll Build
+
+A Live Activity showing:
+- Recording duration and distance
+- Current elevation
+- Navigation info (bearing, distance to waypoint)
+
+## Prerequisites
+
+- iOS 16.1+ target
+- Widget Extension added to your project
+- `NSSupportsLiveActivities` set to `YES` in Info.plist
+
+## Step 1: Define ActivityAttributes
+
+Create a struct describing your activity's data:
+
+```swift
+// TrackRecordingAttributes.swift
+import ActivityKit
+
+struct TrackRecordingAttributes: ActivityAttributes {
+    // Static data (doesn't change during activity)
+    let trackName: String
+
+    // Dynamic data (updates throughout)
+    struct ContentState: Codable, Hashable {
+        let duration: TimeInterval
+        let distance: Double  // meters
+        let elevation: Double
+        let navigationTarget: String?
+        let distanceToTarget: Double?
+        let bearingToTarget: Double?
+    }
+}
+```
+
+<Callout type="tip">
+Keep `ContentState` small. ActivityKit has payload limits, and smaller updates are faster.
+</Callout>
+
+## Step 2: Create the Widget Extension
+
+In your Widget Extension, define the activity configuration:
+
+```swift
+// TopographicNZWidgetsLiveActivity.swift
+struct TrackRecordingActivity: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: TrackRecordingAttributes.self) { context in
+            // Lock Screen view
+            LockScreenView(context: context)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Label(formatDuration(context.state.duration),
+                          systemImage: "timer")
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    Label(formatDistance(context.state.distance),
+                          systemImage: "figure.walk")
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    if let target = context.state.navigationTarget {
+                        NavigationRow(target: target,
+                                     distance: context.state.distanceToTarget,
+                                     bearing: context.state.bearingToTarget)
+                    }
+                }
+            } compactLeading: {
+                Image(systemName: "record.circle")
+                    .foregroundColor(.red)
+            } compactTrailing: {
+                Text(formatDuration(context.state.duration))
+                    .monospacedDigit()
+            } minimal: {
+                Image(systemName: "record.circle")
+                    .foregroundColor(.red)
+            }
+        }
+    }
+}
+```
+
+## Step 3: Start the Activity
+
+In your main app, request the Live Activity:
+
+```swift
+// LiveActivityService.swift
+@MainActor
+class LiveActivityService {
+    private var currentActivity: Activity<TrackRecordingAttributes>?
+
+    func startRecording(trackName: String) throws {
+        let attributes = TrackRecordingAttributes(trackName: trackName)
+        let initialState = TrackRecordingAttributes.ContentState(
+            duration: 0,
+            distance: 0,
+            elevation: 0,
+            navigationTarget: nil,
+            distanceToTarget: nil,
+            bearingToTarget: nil
+        )
+
+        currentActivity = try Activity.request(
+            attributes: attributes,
+            content: .init(state: initialState, staleDate: nil)
+        )
+    }
+}
+```
+
+## Step 4: Update the Activity
+
+Send updates as your data changes:
+
+```swift
+func updateRecording(duration: TimeInterval, distance: Double, elevation: Double) async {
+    guard let activity = currentActivity else { return }
+
+    let updatedState = TrackRecordingAttributes.ContentState(
+        duration: duration,
+        distance: distance,
+        elevation: elevation,
+        navigationTarget: navigationTarget,
+        distanceToTarget: distanceToTarget,
+        bearingToTarget: bearingToTarget
+    )
+
+    await activity.update(
+        ActivityContent(state: updatedState, staleDate: nil)
+    )
+}
+```
+
+<Callout type="warning">
+Don't update too frequently. Once per second is plenty for most use cases. More frequent updates drain battery.
+</Callout>
+
+## Step 5: End the Activity
+
+Clean up when recording stops:
+
+```swift
+func stopRecording() async {
+    guard let activity = currentActivity else { return }
+
+    let finalState = activity.content.state
+    await activity.end(
+        ActivityContent(state: finalState, staleDate: nil),
+        dismissalPolicy: .default
+    )
+    currentActivity = nil
+}
+```
+
+## Testing Tips
+
+1. **Simulator limitations**: Dynamic Island requires a physical device
+2. **Use previews**: SwiftUI Previews work for Lock Screen views
+3. **Check Info.plist**: `NSSupportsLiveActivities` must be `YES`
+
+## Common Gotchas
+
+- **Codable conformance**: `ContentState` must be Codable and Hashable
+- **Size limits**: Keep content state under 4KB
+- **Duration**: Activities auto-end after 8 hours
+- **Widget extension**: Live Activities run in the extension process, not your app
+
+## Full Code
+
+See the complete implementation in [TopographicNZ on GitHub](https://github.com/bradleywilson/TopographicNZ).
