@@ -1,0 +1,213 @@
+---
+title: "XCUITest Page Objects: Maintainable iOS UI Testing"
+description: "How to use the Page Object pattern to write UI tests that don't break with every UI change."
+publishedAt: 2026-01-11
+tags: ["iOS", "testing", "XCUITest"]
+draft: false
+---
+
+UI tests are notoriously fragile. A button moves, a label changes, and suddenly half your tests fail. The Page Object pattern fixes this by encapsulating UI structure in reusable objects.
+
+## The Problem
+
+Without Page Objects, tests look like this:
+
+```swift
+func testPlayerFlow() {
+    app.buttons["95bFM"].tap()
+    app.buttons["play.circle.fill"].tap()
+    XCTAssertTrue(app.staticTexts["Now Playing"].exists)
+    app.buttons["list.bullet"].tap()
+    // ... more element queries scattered everywhere
+}
+```
+
+When the UI changes, you update dozens of tests.
+
+## The Solution: Page Objects
+
+Encapsulate each screen in a class:
+
+```swift
+// HomeScreen.swift
+class HomeScreen {
+    let app: XCUIApplication
+
+    init(app: XCUIApplication) {
+        self.app = app
+    }
+
+    // Elements
+    var stationButton95bFM: XCUIElement {
+        app.buttons[AccessibilityIdentifiers.Home.stationButton("95bFM")]
+    }
+
+    var nowPlayingBar: XCUIElement {
+        app.otherElements[AccessibilityIdentifiers.Home.nowPlayingBar]
+    }
+
+    // Actions
+    func selectStation(_ name: String) -> PlayerScreen {
+        app.buttons[AccessibilityIdentifiers.Home.stationButton(name)].tap()
+        return PlayerScreen(app: app)
+    }
+
+    func tapNowPlayingBar() -> PlayerScreen {
+        nowPlayingBar.tap()
+        return PlayerScreen(app: app)
+    }
+
+    // Verification
+    func verifyOnScreen() {
+        XCTAssertTrue(stationButton95bFM.waitForExistence(timeout: 5))
+    }
+}
+```
+
+Now tests read like user stories:
+
+```swift
+func testPlayerFlow() {
+    let homeScreen = HomeScreen(app: app)
+    homeScreen.verifyOnScreen()
+
+    let playerScreen = homeScreen.selectStation("95bFM")
+    playerScreen.verifyOnScreen()
+    playerScreen.tapPlay()
+
+    let trackList = playerScreen.openTrackList()
+    trackList.verifyOnScreen()
+}
+```
+
+## Centralized Accessibility Identifiers
+
+Define identifiers in one place:
+
+```swift
+// AccessibilityIdentifiers.swift
+enum AccessibilityIdentifiers {
+    enum Home {
+        static let nowPlayingBar = "home.nowPlayingBar"
+        static func stationButton(_ station: String) -> String {
+            "home.station.\(station)"
+        }
+    }
+
+    enum Player {
+        static let playButton = "player.playButton"
+        static let pauseButton = "player.pauseButton"
+        static let trackListButton = "player.trackListButton"
+    }
+
+    enum TrackList {
+        static let collectionView = "trackList.collectionView"
+        static func trackRow(_ id: String) -> String {
+            "trackList.row.\(id)"
+        }
+    }
+}
+```
+
+<Callout type="tip">
+Use descriptive, hierarchical identifiers. `player.playButton` is easier to debug than `btn1`.
+</Callout>
+
+## Base Test Class
+
+Reduce boilerplate with a base class:
+
+```swift
+// BaseTest.swift
+class BaseTest: XCTestCase {
+    var app: XCUIApplication!
+
+    override func setUpWithError() throws {
+        continueAfterFailure = false
+        app = XCUIApplication()
+        app.launchArguments = ["--uitesting", "--reset-data"]
+        app.launchEnvironment = [
+            "UITESTING": "1",
+            "ANIMATION_SPEED": "0"
+        ]
+        app.launch()
+    }
+
+    func waitForElement(_ element: XCUIElement, timeout: TimeInterval = 5) -> Bool {
+        element.waitForExistence(timeout: timeout)
+    }
+}
+```
+
+## Handling Platform Quirks
+
+iOS has some UI testing quirks. Here's how to handle them:
+
+### Tab Bar Identifiers
+
+iOS 26's Tab API doesn't propagate accessibility identifiers:
+
+```swift
+// Workaround: Match by label
+var homeTab: XCUIElement {
+    app.buttons["Home"]  // Use visible label, not identifier
+}
+```
+
+### Volume Slider
+
+`MPVolumeView` doesn't expose proper identifiers:
+
+```swift
+var volumeSlider: XCUIElement {
+    // Fall back to first slider on screen
+    app.sliders.firstMatch
+}
+```
+
+### Custom Gestures
+
+Some views need custom dismiss gestures:
+
+```swift
+func dismissTrackList() {
+    let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
+    let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9))
+    start.press(forDuration: 0.1, thenDragTo: end)
+}
+```
+
+## Test Organization
+
+Structure tests by user flow:
+
+```
+bRadioUITests/
+├── Base/
+│   └── BaseTest.swift
+├── PageObjects/
+│   ├── HomeScreen.swift
+│   ├── PlayerScreen.swift
+│   └── TrackListScreen.swift
+├── Helpers/
+│   └── AccessibilityIdentifiers.swift
+└── Tests/
+    ├── NavigationTests.swift
+    ├── PlayerTests.swift
+    └── TrackListTests.swift
+```
+
+## Benefits
+
+1. **Maintenance**: UI changes affect one Page Object, not all tests
+2. **Readability**: Tests read like user stories
+3. **Reusability**: Common actions defined once
+4. **Debugging**: Clear structure makes failures easier to diagnose
+
+<Callout type="info">
+Page Objects add initial setup time, but pay off quickly as your test suite grows.
+</Callout>
+
+## Full Implementation
+
+See the complete pattern in [bRadio on GitHub](https://github.com/bradleywilson/bRadio).
