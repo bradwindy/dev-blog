@@ -1,0 +1,111 @@
+---
+title: "Building MCP Servers in Three Languages"
+description: "Comparing TypeScript, Swift, and Python approaches to building Model Context Protocol servers for Claude."
+publishedAt: 2026-01-07
+tags: ["MCP", "TypeScript", "Swift", "Python"]
+draft: false
+---
+
+I've built three MCP servers in three different languages. Here's what I learned about each approach.
+
+<Callout type="info">
+MCP (Model Context Protocol) is an open standard for connecting AI assistants to external tools and data. Think of it as "USB-C for AI."
+</Callout>
+
+## The Three Servers
+
+| Server | Language | Purpose |
+|--------|----------|---------|
+| mcp-apple-notes | TypeScript | Semantic search over Apple Notes |
+| app-intents-mcp | Swift | Expose macOS App Intents to Claude |
+| mcp-ical | Python | Calendar management with timezone handling |
+
+## TypeScript: mcp-apple-notes
+
+Best for: Rapid development, npm ecosystem, vector search integrations.
+
+```typescript
+// index.ts
+const server = new Server(
+  { name: "apple-notes", version: "1.0.0" },
+  { capabilities: { tools: {} } }
+);
+
+server.setRequestHandler(ListToolsRequestSchema, async () => ({
+  tools: [
+    { name: "search-notes", description: "Semantic search...", inputSchema: {...} },
+    { name: "create-note", description: "Create a new note", inputSchema: {...} }
+  ]
+}));
+```
+
+**Key features:**
+- LanceDB for vector embeddings with HuggingFace model
+- Hybrid search using Reciprocal Rank Fusion
+- Direct SQLite access to Apple Notes database
+
+## Swift: app-intents-mcp
+
+Best for: macOS system integration, App Intents discovery, native performance.
+
+```swift
+// Server.swift
+public actor Server {
+    func handleListTools() async -> ListToolsResult {
+        return ListToolsResult(tools: [
+            Tool(name: "list_intents", description: "List available intents"),
+            Tool(name: "run_intent", description: "Execute an intent")
+        ])
+    }
+}
+```
+
+**Key features:**
+- Actor-based concurrency for thread safety
+- Bundle scanning for intent discovery
+- Shortcuts bridge for execution
+
+## Python: mcp-ical
+
+Best for: EventKit via PyObjC, complex domain logic, rapid prototyping.
+
+```python
+# server.py
+@server.list_tools()
+async def list_tools() -> list[Tool]:
+    return [
+        Tool(name="list_events", description="List calendar events"),
+        Tool(name="create_event", description="Create a calendar event")
+    ]
+```
+
+**Key features:**
+- 5-layer timezone handling architecture
+- Recurring event support with occurrence matching
+- Natural language event creation
+
+## Comparison
+
+| Aspect | TypeScript | Swift | Python |
+|--------|------------|-------|--------|
+| Setup time | Fast (npm) | Medium (SPM) | Fast (uv/pip) |
+| Type safety | Good | Excellent | Moderate |
+| macOS APIs | Via bridges | Native | Via PyObjC |
+| Ecosystem | Massive | Growing | Large |
+| Debugging | Good | Excellent | Good |
+
+## Which Should You Choose?
+
+- **TypeScript**: Web services, databases, vector search
+- **Swift**: macOS system integration, performance-critical
+- **Python**: Prototyping, complex logic, scientific computing
+
+<Callout type="tip">
+Start with Python for prototyping, then port to TypeScript or Swift for production if needed.
+</Callout>
+
+## Resources
+
+- [MCP Specification](https://modelcontextprotocol.io)
+- [TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [Python SDK](https://github.com/modelcontextprotocol/python-sdk)
