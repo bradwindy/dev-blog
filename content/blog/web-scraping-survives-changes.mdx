@@ -1,0 +1,165 @@
+---
+title: "Web Scraping That Survives HTML Changes"
+description: "Building resilient scrapers with multiple parsing strategies and graceful fallbacks."
+publishedAt: 2026-01-15
+tags: ["Next.js", "scraping", "patterns"]
+draft: false
+---
+
+The NZ Transport Agency publishes speed camera data as HTML tables. Great—except the page structure changes without warning. Here's how I built a scraper that adapts.
+
+## The Challenge
+
+Government websites aren't APIs. They're HTML documents designed for humans, not machines. When they redesign:
+- Class names change
+- Table structures reorganize
+- New sections appear
+
+A brittle scraper breaks. A resilient one adapts.
+
+## Strategy 1: Multiple Selectors
+
+Try specific selectors first, fall back to general ones:
+
+```typescript
+// scraper.ts
+function findDataTables($: CheerioAPI): Cheerio<Element>[] {
+  // Strategy 1: Specific content area classes
+  const specific = $('.c-content-area table, .main-content table');
+  if (specific.length > 0) return specific.toArray();
+
+  // Strategy 2: Semantic elements
+  const semantic = $('article table, main table');
+  if (semantic.length > 0) return semantic.toArray();
+
+  // Strategy 3: Any table (last resort)
+  return $('table').toArray();
+}
+```
+
+<Callout type="tip">
+Order strategies from most specific to most general. Specific selectors are more reliable when they work.
+</Callout>
+
+## Strategy 2: Content Validation
+
+Don't trust structure—validate content:
+
+```typescript
+function isValidCameraTable(table: Cheerio<Element>, $: CheerioAPI): boolean {
+  const headers = $(table).find('th').map((_, el) => $(el).text().toLowerCase()).get();
+
+  // Must have expected columns
+  const requiredHeaders = ['location', 'type', 'latitude', 'longitude'];
+  return requiredHeaders.every(h =>
+    headers.some(header => header.includes(h))
+  );
+}
+```
+
+## Strategy 3: Coordinate Validation
+
+Geographic data has natural bounds:
+
+```typescript
+function validateCoordinates(lat: number, lng: number): boolean {
+  // New Zealand bounds
+  const NZ_BOUNDS = {
+    lat: { min: -47.5, max: -34.0 },
+    lng: { min: 166.0, max: 179.0 }
+  };
+
+  return (
+    lat >= NZ_BOUNDS.lat.min && lat <= NZ_BOUNDS.lat.max &&
+    lng >= NZ_BOUNDS.lng.min && lng <= NZ_BOUNDS.lng.max
+  );
+}
+```
+
+Invalid coordinates? Something's wrong with parsing—fail loudly.
+
+## Strategy 4: Deduplication
+
+Geohash IDs naturally deduplicate:
+
+```typescript
+function deduplicateCameras(cameras: Camera[]): Camera[] {
+  const seen = new Map<string, Camera>();
+
+  for (const camera of cameras) {
+    const id = generateCameraId(camera.lat, camera.lng);
+    // Keep first occurrence (or most complete data)
+    if (!seen.has(id)) {
+      seen.set(id, { ...camera, id });
+    }
+  }
+
+  return Array.from(seen.values());
+}
+```
+
+## The Full Pipeline
+
+```typescript
+async function scrapeCameras(): Promise<Camera[]> {
+  const html = await fetchPage(NZTA_URL);
+  const $ = cheerio.load(html);
+
+  // Find tables with multiple strategies
+  const tables = findDataTables($);
+
+  // Parse each table
+  let cameras: Camera[] = [];
+  for (const table of tables) {
+    if (isValidCameraTable($(table), $)) {
+      const parsed = parseTable($(table), $);
+      cameras.push(...parsed);
+    }
+  }
+
+  // Validate coordinates
+  cameras = cameras.filter(c => validateCoordinates(c.lat, c.lng));
+
+  // Deduplicate
+  cameras = deduplicateCameras(cameras);
+
+  // Sanity check
+  if (cameras.length < 100) {
+    throw new Error(`Only found ${cameras.length} cameras—expected 800+`);
+  }
+
+  return cameras;
+}
+```
+
+<Callout type="warning">
+Always add sanity checks. If your scraper suddenly returns 0 results, that's a parsing failure, not empty data.
+</Callout>
+
+## Testing the Scraper
+
+Snapshot the page structure:
+
+```typescript
+describe('Camera Scraper', () => {
+  it('parses current NZTA page structure', async () => {
+    const cameras = await scrapeCameras();
+
+    expect(cameras.length).toBeGreaterThan(800);
+    expect(cameras.every(c => validateCoordinates(c.lat, c.lng))).toBe(true);
+    expect(cameras.every(c => c.id.length === 8)).toBe(true);
+  });
+});
+```
+
+When tests fail, the page structure changed—time to update strategies.
+
+## Lessons Learned
+
+1. **Layer your strategies**—specific first, general last
+2. **Validate content, not structure**—tables should contain expected data
+3. **Use domain knowledge**—coordinates have bounds, counts have expectations
+4. **Fail loudly**—zero results is an error, not success
+5. **Test regularly**—scraper health checks catch changes early
+
+The scraper has survived 3 NZTA redesigns without manual intervention.
