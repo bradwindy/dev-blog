@@ -1,0 +1,201 @@
+---
+title: "SwiftData + DataThespian: Thread-Safe Persistence"
+description: "How to use SwiftData safely in Swift 6 with strict concurrency using the DataThespian wrapper."
+publishedAt: 2026-01-17
+tags: ["iOS", "SwiftData", "concurrency"]
+draft: false
+---
+
+SwiftData is Apple's modern persistence framework. But with Swift 6's strict concurrency, using it safely requires care. DataThespian provides a clean solution.
+
+## The Concurrency Problem
+
+SwiftData model objects aren't `Sendable`. You can't pass them between actors:
+
+```swift
+// This won't compile in Swift 6
+func fetchTrack() async -> Track {
+    let context = modelContainer.mainContext
+    let track = try! context.fetch(FetchDescriptor<Track>()).first!
+    return track  // Error: Track is not Sendable
+}
+```
+
+## The DataThespian Pattern
+
+DataThespian wraps ModelActor to provide thread-safe database access:
+
+```swift
+import DataThespian
+
+@ModelActor
+actor DatabaseService {
+    func fetchTracks() -> [TrackProxy] {
+        let tracks = try! modelExecutor.modelContext.fetch(
+            FetchDescriptor<Track>()
+        )
+        return tracks.map { TrackProxy(from: $0) }
+    }
+}
+```
+
+## Proxy Objects
+
+Create `Sendable` proxies that cross actor boundaries:
+
+```swift
+struct TrackProxy: Sendable {
+    let id: PersistentIdentifier
+    let name: String
+    let distance: Double
+    let duration: TimeInterval
+
+    init(from track: Track) {
+        self.id = track.persistentModelID
+        self.name = track.name
+        self.distance = track.distance
+        self.duration = track.duration
+    }
+}
+```
+
+<Callout type="tip">
+Proxies contain only primitive, Sendable types. Use them for reads; go back to the model for writes.
+</Callout>
+
+## Read Pattern
+
+```swift
+// ViewModel
+@Observable @MainActor
+class TrackListViewModel {
+    private let database: DatabaseService
+    var tracks: [TrackProxy] = []
+
+    func loadTracks() async {
+        tracks = await database.fetchTracks()
+    }
+}
+```
+
+## Write Pattern
+
+Writes need the original model context:
+
+```swift
+extension DatabaseService {
+    func updateTrack(id: PersistentIdentifier, name: String) {
+        let context = modelExecutor.modelContext
+        guard let track = context.model(for: id) as? Track else { return }
+        track.name = name
+        try? context.save()
+    }
+}
+```
+
+## Avoiding @Query Conflicts
+
+SwiftUI's `@Query` and manual fetches can conflict. Choose one approach:
+
+```swift
+// Option 1: Pure @Query (simple cases)
+struct TrackListView: View {
+    @Query var tracks: [Track]
+
+    var body: some View {
+        List(tracks) { track in
+            Text(track.name)
+        }
+    }
+}
+
+// Option 2: Pure ViewModel (complex cases)
+struct TrackListView: View {
+    @State var viewModel: TrackListViewModel
+
+    var body: some View {
+        List(viewModel.tracks) { proxy in
+            Text(proxy.name)
+        }
+        .task { await viewModel.loadTracks() }
+    }
+}
+```
+
+<Callout type="warning">
+Don't mix @Query with manual context operations. They can see different data states.
+</Callout>
+
+## Manual Refresh
+
+When you mutate data, refresh manually:
+
+```swift
+class TrackListViewModel {
+    @Published var tracks: [TrackProxy] = []
+
+    func deleteTrack(_ proxy: TrackProxy) async {
+        await database.deleteTrack(id: proxy.id)
+        await loadTracks()  // Refresh after mutation
+    }
+}
+```
+
+## Testing with In-Memory Containers
+
+```swift
+// TestContainer.swift
+struct TestContainer {
+    static func create() -> ModelContainer {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        return try! ModelContainer(
+            for: Track.self, Waypoint.self,
+            configurations: config
+        )
+    }
+
+    static func populated() -> ModelContainer {
+        let container = create()
+        let context = container.mainContext
+
+        // Add test data
+        context.insert(Track(name: "Test Track", distance: 1000))
+        try! context.save()
+
+        return container
+    }
+}
+```
+
+## Full Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐
+│   SwiftUI View  │────▶│    ViewModel     │
+│   (@State VM)   │     │   (@Observable)  │
+└─────────────────┘     └────────┬─────────┘
+                                 │
+                                 │ async/await
+                                 ▼
+                        ┌──────────────────┐
+                        │  DatabaseService │
+                        │   (@ModelActor)  │
+                        └────────┬─────────┘
+                                 │
+                                 │ ModelContext
+                                 ▼
+                        ┌──────────────────┐
+                        │   SwiftData      │
+                        │   (SQLite)       │
+                        └──────────────────┘
+```
+
+## Key Takeaways
+
+1. **Model objects aren't Sendable**—use proxies for reads
+2. **Writes need context**—pass PersistentIdentifier, fetch model, mutate
+3. **Don't mix @Query with manual fetches**—choose one pattern
+4. **Refresh after mutations**—no automatic observation across actors
+5. **Test with in-memory containers**—fast, isolated, deterministic
+
+DataThespian makes SwiftData safe under strict concurrency.
