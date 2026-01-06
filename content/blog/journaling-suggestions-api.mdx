@@ -1,0 +1,186 @@
+---
+title: "Integrating Apple's JournalingSuggestions API"
+description: "A comprehensive guide to parsing journaling suggestions, handling 11+ content types, and navigating Swift 6 concurrency challenges."
+publishedAt: 2026-01-09
+tags: ["iOS", "SwiftUI", "JournalingSuggestions"]
+draft: false
+---
+
+Apple's JournalingSuggestions API surfaces meaningful moments from device data—photos, workouts, locations, and more. Here's how I integrated it into HabitTracker, including the Swift 6 compatibility challenges.
+
+<Callout type="info">
+JournalingSuggestions requires iOS 17.2+ and only works on physical devices. The picker runs out-of-process for privacy.
+</Callout>
+
+## What JournalingSuggestions Provides
+
+The API surfaces 11+ content types:
+- Photos and videos
+- Workouts and motion activity
+- Locations and contacts
+- Songs and podcasts
+- Reflections and state of mind (iOS 18+)
+
+## The Privacy Model
+
+Users explicitly select suggestions through a system picker. Your app never sees:
+- Unselected suggestions
+- Raw device data
+- Suggestion metadata
+
+This is intentional—privacy by design.
+
+## Basic Implementation
+
+```swift
+import JournalingSuggestions
+import SwiftUI
+
+struct JournalEditorView: View {
+    @State private var selectedSuggestion: JournalingSuggestion?
+
+    var body: some View {
+        VStack {
+            JournalingSuggestionsPicker(label: "Add from Suggestions") { suggestion in
+                self.selectedSuggestion = suggestion
+                await parseSuggestion(suggestion)
+            }
+        }
+    }
+}
+```
+
+## Parsing Content Types
+
+Each suggestion contains typed content. Here's how to extract it:
+
+```swift
+func parseSuggestion(_ suggestion: JournalingSuggestion) async {
+    for item in suggestion.content {
+        switch item {
+        case let photo as JournalingSuggestion.Photo:
+            await handlePhoto(photo)
+        case let workout as JournalingSuggestion.Workout:
+            handleWorkout(workout)
+        case let location as JournalingSuggestion.Location:
+            handleLocation(location)
+        case let contact as JournalingSuggestion.Contact:
+            handleContact(contact)
+        case let song as JournalingSuggestion.Song:
+            handleSong(song)
+        // ... handle other types
+        default:
+            print("Unknown content type: \(type(of: item))")
+        }
+    }
+}
+```
+
+## Swift 6 Concurrency Challenge
+
+The JournalingSuggestions framework isn't fully Sendable-compliant. You'll hit this error:
+
+```
+'@preconcurrency' attribute on module 'JournalingSuggestions' is
+deprecated; this module is now Sendable-safe
+```
+
+The fix: Use `@preconcurrency import`:
+
+```swift
+@preconcurrency import JournalingSuggestions
+```
+
+<Callout type="warning">
+This is a known issue. Apple's framework predates strict concurrency checking. The `@preconcurrency` import suppresses the warning without breaking functionality.
+</Callout>
+
+## Handling Photos and Videos
+
+Photos require async loading:
+
+```swift
+func handlePhoto(_ photo: JournalingSuggestion.Photo) async {
+    // Load the image data
+    if let data = try? await photo.photo.load() {
+        let uiImage = UIImage(data: data)
+        // Use the image...
+    }
+}
+```
+
+Videos have platform differences:
+
+```swift
+func handleVideo(_ video: JournalingSuggestion.LivePhoto) async {
+    #if targetEnvironment(simulator)
+    // Simulator: Use still image fallback
+    if let imageData = try? await video.photo.load() {
+        // Handle as image
+    }
+    #else
+    // Device: Access video asset
+    if let videoURL = video.video {
+        // Handle video playback
+    }
+    #endif
+}
+```
+
+## Deep Linking to Apple Apps
+
+Make locations open in Maps:
+
+```swift
+func openInMaps(_ location: JournalingSuggestion.Location) {
+    let coordinate = location.location.coordinate
+    let url = URL(string: "maps://?ll=\(coordinate.latitude),\(coordinate.longitude)")!
+    UIApplication.shared.open(url)
+}
+```
+
+Make songs open in Apple Music:
+
+```swift
+func openInMusic(_ song: JournalingSuggestion.Song) {
+    if let musicURL = URL(string: "music://music.apple.com/search?term=\(song.song.title)") {
+        UIApplication.shared.open(musicURL)
+    }
+}
+```
+
+## Testing Strategy
+
+Since the picker only works on device:
+
+1. **Unit test parsing logic** with mock data
+2. **Snapshot test UI components** with synthetic suggestions
+3. **Manual test** the full flow on device
+
+```swift
+// Mock suggestion for testing
+extension JournalingSuggestion {
+    static var mockPhoto: Self {
+        // Create mock for snapshot tests
+    }
+}
+```
+
+## iOS 18 Additions
+
+iOS 18 adds:
+- **State of Mind**: Mood and emotion tracking from Health
+- **Reflection Prompts**: Writing prompts for self-reflection
+- **Generic Media**: Third-party apps (Spotify, Pocket Casts)
+
+Check availability:
+
+```swift
+if #available(iOS 18, *) {
+    // Handle state of mind suggestions
+}
+```
+
+## Full Implementation
+
+See the complete parser in [HabitTracker on GitHub](https://github.com/bradleywilson/HabitTracker).
