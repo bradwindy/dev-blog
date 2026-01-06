@@ -1,0 +1,74 @@
+---
+title: "Geohash-Based IDs: A Clever Pattern for Location Data"
+description: "How to use geohashing to create unique, deterministic identifiers from coordinates without a central database."
+publishedAt: 2026-01-06
+tags: ["Next.js", "GIS", "patterns"]
+draft: false
+---
+
+When building the NZ Speed Camera Map, I needed unique IDs for 896 cameras. The catch: no database, just coordinate data from a government CSV. Geohashing solved this elegantly.
+
+<Callout type="tip">
+Geohashes encode latitude/longitude into a string where nearby locations share prefixes. An 8-character geohash gives ~19m precision—perfect for distinguishing cameras.
+</Callout>
+
+## The Problem
+
+Government data includes coordinates but no stable IDs. Camera names change. Addresses vary. I needed IDs that:
+- Stay consistent across data updates
+- Require no central authority
+- Allow proximity queries
+
+## The Solution
+
+```typescript
+import ngeohash from 'ngeohash';
+
+export function generateCameraId(lat: number, lng: number): string {
+  return ngeohash.encode(lat, lng, 8);  // ~19m precision
+}
+```
+
+An 8-character geohash like `rbsm6p7q` uniquely identifies a camera's location. Even if metadata changes, coordinates don't—so the ID remains stable.
+
+## Precision Levels
+
+| Characters | Precision | Use Case |
+|------------|-----------|----------|
+| 4 | ~20km | City-level |
+| 6 | ~600m | Neighborhood |
+| 8 | ~19m | Building |
+| 10 | ~1m | Exact point |
+
+## Practical Benefits
+
+**Deduplication**: When scraping data, duplicates naturally collapse:
+
+```typescript
+const uniqueCameras = Array.from(
+  new Map(cameras.map((c) => [c.id, c])).values()
+);
+```
+
+**Proximity**: Cameras with shared prefixes are nearby—useful for clustering.
+
+**SEO-friendly slugs**: Combine geohash with readable info:
+
+```typescript
+const slug = `auckland-cbd-${geohash.slice(0, 6)}`;
+```
+
+## When to Use This Pattern
+
+- Static datasets with coordinates
+- No database available
+- Need deterministic IDs from location data
+- Want built-in proximity information
+
+<Callout type="info">
+This pattern won't work for moving objects or when sub-meter precision matters. For those cases, use UUIDs with a coordinate lookup.
+</Callout>
+
+## Code
+
+The full implementation is in [nz-speed-cameras on GitHub](https://github.com/bradleywilson/nz-speed-cameras).
