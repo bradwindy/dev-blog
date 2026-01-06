@@ -1,0 +1,211 @@
+---
+title: "Snapshot Testing SwiftUI: Multi-Device, Multi-Theme"
+description: "Quick tips for setting up comprehensive snapshot testing across devices and color schemes."
+publishedAt: 2026-01-12
+tags: ["iOS", "testing", "SwiftUI"]
+draft: false
+---
+
+Snapshot testing catches visual regressions automatically. Here's how to test SwiftUI views across multiple devices and themes efficiently.
+
+## Setup
+
+Install swift-snapshot-testing:
+
+```swift
+// Package.swift
+.package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.17.0")
+```
+
+## Device Configurations
+
+Define reusable device configs:
+
+```swift
+// SnapshotConfiguration.swift
+import SnapshotTesting
+
+enum DeviceConfig {
+    static let iPhone16 = ViewImageConfig.iPhone13Pro
+    static let iPadAir = ViewImageConfig.iPadPro11
+}
+
+enum ScreenConfiguration: CaseIterable {
+    case iPhoneLight, iPhoneDark, iPadLight, iPadDark
+
+    var config: ViewImageConfig {
+        switch self {
+        case .iPhoneLight, .iPhoneDark: return DeviceConfig.iPhone16
+        case .iPadLight, .iPadDark: return DeviceConfig.iPadAir
+        }
+    }
+
+    var traits: UITraitCollection {
+        switch self {
+        case .iPhoneLight, .iPadLight:
+            return UITraitCollection(userInterfaceStyle: .light)
+        case .iPhoneDark, .iPadDark:
+            return UITraitCollection(userInterfaceStyle: .dark)
+        }
+    }
+}
+```
+
+## Base Test Case
+
+Disable animations for deterministic snapshots:
+
+```swift
+// SnapshotTestCase.swift
+class SnapshotTestCase: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        UIView.setAnimationsEnabled(false)
+    }
+
+    override func tearDown() {
+        UIView.setAnimationsEnabled(true)
+        super.tearDown()
+    }
+}
+```
+
+## Helper Methods
+
+Test all configurations at once:
+
+```swift
+extension SnapshotTestCase {
+    func assertSnapshots<V: View>(
+        of view: V,
+        named name: String,
+        file: StaticString = #file,
+        testName: String = #function,
+        line: UInt = #line
+    ) {
+        for config in ScreenConfiguration.allCases {
+            assertSnapshot(
+                of: view,
+                as: .image(
+                    layout: .device(config: config.config),
+                    traits: config.traits
+                ),
+                named: "\(name)_\(config)",
+                file: file,
+                testName: testName,
+                line: line
+            )
+        }
+    }
+
+    func assertComponentSnapshots<V: View>(
+        of view: V,
+        named name: String,
+        size: CGSize,
+        file: StaticString = #file,
+        testName: String = #function,
+        line: UInt = #line
+    ) {
+        // Components: just light/dark, fixed size
+        for style in [UIUserInterfaceStyle.light, .dark] {
+            assertSnapshot(
+                of: view,
+                as: .image(
+                    layout: .fixed(width: size.width, height: size.height),
+                    traits: UITraitCollection(userInterfaceStyle: style)
+                ),
+                named: "\(name)_\(style == .light ? "Light" : "Dark")",
+                file: file,
+                testName: testName,
+                line: line
+            )
+        }
+    }
+}
+```
+
+<Callout type="tip">
+Use `assertSnapshots` for full screens, `assertComponentSnapshots` for isolated components.
+</Callout>
+
+## Writing Tests
+
+```swift
+class CircleButtonSnapshotTests: SnapshotTestCase {
+    func testPlayButton() {
+        let view = CircleButton(size: 60, icon: "play.fill") {}
+        assertComponentSnapshots(
+            of: view,
+            named: "play",
+            size: CGSize(width: 80, height: 80)
+        )
+    }
+
+    func testPauseButtonLarge() {
+        let view = CircleButton(size: 120, icon: "pause.fill") {}
+        assertComponentSnapshots(
+            of: view,
+            named: "pause_large",
+            size: CGSize(width: 140, height: 140)
+        )
+    }
+}
+```
+
+## Recording Baselines
+
+First run creates reference images:
+
+```bash
+RECORD_SNAPSHOTS=1 xcodebuild test ...
+```
+
+Or in code:
+
+```swift
+// Temporarily set to record
+isRecording = true
+```
+
+## Directory Structure
+
+Snapshots organize automatically:
+
+```
+bRadioTests/
+└── Snapshots/
+    └── Components/
+        └── CircleButtonSnapshotTests/
+            └── __Snapshots__/
+                ├── testPlayButton.play_Light.png
+                ├── testPlayButton.play_Dark.png
+                ├── testPauseButtonLarge.pause_large_Light.png
+                └── testPauseButtonLarge.pause_large_Dark.png
+```
+
+## CI Integration
+
+Fail on differences:
+
+```yaml
+- name: Run snapshot tests
+  run: |
+    xcodebuild test \
+      -scheme bRadio \
+      -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
+      -resultBundlePath TestResults.xcresult
+```
+
+<Callout type="warning">
+Simulator differences can cause false failures. Pin simulator versions in CI.
+</Callout>
+
+## Quick Reference
+
+| Scenario | Method | Size |
+|----------|--------|------|
+| Full screen | `assertSnapshots` | Device-based |
+| Component | `assertComponentSnapshots` | Fixed |
+| Single config | `assertSnapshot` | Manual |
+
+Snapshot testing catches regressions before users do.
