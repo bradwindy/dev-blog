@@ -15,6 +15,18 @@ Xcode projects are notoriously hard to merge. `.xcodeproj` files are XML that gi
 3. **Consistent settings**: No more "works on my machine"
 4. **Type safety**: Catch config errors at generation time
 
+## Real-World Success Stories
+
+Major companies have seen dramatic improvements:
+
+| Company | Scale | Build Time Improvement |
+|---------|-------|------------------------|
+| Trendyol | 170+ developers | 65% faster (30 min → 10 min) |
+| Lapse | 220 modules | 75% faster (53 min → 13 min) |
+| Back Market | Large team | Up to 90% with full cache |
+
+These aren't synthetic benchmarks—they're production CI pipelines.
+
 ## Project Structure
 
 ```
@@ -187,6 +199,26 @@ extension Scheme {
 }
 ```
 
+## Tuist Cloud
+
+Tuist Cloud provides remote caching for teams:
+
+- **Up to 90% cache efficiency** on clean builds
+- **Shared artifacts**: One developer builds, everyone benefits
+- **Insights dashboard**: Track build times and cache hit rates
+
+```bash
+# Enable caching
+tuist cache warm
+
+# Generate with cached dependencies
+tuist generate
+```
+
+<Callout type="info">
+Tuist 4.0 (2024) added Swift Macro caching and improved multi-platform support.
+</Callout>
+
 ## Benefits I've Seen
 
 - **Zero merge conflicts** on project files
@@ -198,11 +230,48 @@ extension Scheme {
 Tuist-generated projects shouldn't be committed. Add `*.xcodeproj` and `*.xcworkspace` to `.gitignore`.
 </Callout>
 
+## Common Mistakes
+
+### 1. Forgetting `tuist install`
+
+Always run `tuist install` before `tuist generate`. Missing this causes cryptic build failures:
+
+```bash
+tuist install  # Resolve dependencies first
+tuist generate # Then generate project
+```
+
+### 2. Using @_exported
+
+Re-exporting modules breaks Tuist's caching:
+
+```swift
+// Bad - breaks caching
+@_exported import Foundation
+
+// Good - explicit imports
+import Foundation
+```
+
+### 3. Complex File Structures
+
+Deep, nested directories slow project generation. Keep source organization simple.
+
+### 4. CocoaPods Compatibility
+
+Tuist doesn't support CocoaPods. Migrate dependencies to Swift packages or Carthage before adopting Tuist.
+
 ## Getting Started
 
-1. Install Tuist
-2. Run `tuist init` in your project
-3. Move sources to match Tuist's expectations
-4. Generate and verify
+Migration takes 1-3 months for complex projects. Start incrementally:
 
-Start simple, add templates as patterns emerge.
+1. **Install Tuist**: `curl -Ls https://install.tuist.io | bash`
+2. **Create scaffolding**: Add `Tuist.swift` and `Project.swift`
+3. **Migrate one target**: Start with your app target
+4. **Add tests**: Migrate test targets next
+5. **Extract patterns**: Create helpers as patterns emerge
+6. **Enable caching**: Connect Tuist Cloud for team benefits
+
+<Callout type="warning">
+Commit your `Project.swift` and helpers, but add `*.xcodeproj` and `*.xcworkspace` to `.gitignore`.
+</Callout>
