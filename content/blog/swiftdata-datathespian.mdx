@@ -6,7 +6,11 @@ tags: ["iOS", "SwiftData", "concurrency"]
 draft: false
 ---
 
-SwiftData is Apple's modern persistence framework. But with Swift 6's strict concurrency, using it safely requires care. DataThespian provides a clean solution.
+SwiftData is Apple's modern persistence framework. But with Swift 6's strict concurrency, using it safely requires care. [DataThespian](https://github.com/brightdigit/DataThespian), created by Leo Dion at BrightDigit, provides a clean solution.
+
+<Callout type="info">
+DataThespian is an open-source library, not my creation. This post explains how I've used it in my projects.
+</Callout>
 
 ## The Concurrency Problem
 
@@ -19,6 +23,31 @@ func fetchTrack() async -> Track {
     let track = try! context.fetch(FetchDescriptor<Track>()).first!
     return track  // Error: Track is not Sendable
 }
+```
+
+## Why DataThespian?
+
+DataThespian wraps SwiftData's `ModelActor` pattern in a developer-friendly API:
+
+### Key Benefits
+
+1. **Thread-safe by default**: All database operations isolated in an actor
+2. **Type-safe queries**: Compile-time validated predicates and selectors
+3. **SwiftUI integration**: Environment-based database access via `@Environment(\.database)`
+4. **CloudKit support**: Works seamlessly with iCloud sync
+5. **Clean API**: Simple `fetch`, `insert`, and `save` methods
+
+### Requirements
+
+- Swift 6.0+
+- iOS 17+, macOS 14+, watchOS 10+, tvOS 17+
+- Xcode 16.0+
+
+### Installation
+
+```swift
+// Package.swift
+.package(url: "https://github.com/brightdigit/DataThespian", from: "1.0.0")
 ```
 
 ## The DataThespian Pattern
@@ -199,3 +228,10 @@ struct TestContainer {
 5. **Test with in-memory containers**—fast, isolated, deterministic
 
 DataThespian makes SwiftData safe under strict concurrency.
+
+## Resources
+
+- [DataThespian on GitHub](https://github.com/brightdigit/DataThespian) - Source code and documentation
+- [BrightDigit](https://brightdigit.com) - Leo Dion's company, creators of DataThespian
+- [Swift Package Index](https://swiftpackageindex.com/brightdigit/DataThespian) - Package documentation
+- [Apple's Swift Concurrency Documentation](https://developer.apple.com/documentation/swift/concurrency) - Understanding actors and sendability
