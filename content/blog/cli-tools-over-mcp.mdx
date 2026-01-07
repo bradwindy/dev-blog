@@ -1,0 +1,89 @@
+---
+title: "Why CLI Tools Beat MCP for AI Coding Assistants"
+description: "Comparing native CLI tools and Agent Skills to the Model Context Protocol - when simpler is better."
+publishedAt: 2026-01-07
+tags: ["AI", "tooling", "Claude Code"]
+draft: false
+---
+
+The Model Context Protocol (MCP) launched in November 2024 as an open standard for AI-tool integration. It gained rapid adoption, but after months of real-world use, a pattern has emerged: native CLI tools often outperform MCP wrappers.
+
+## The Token Problem
+
+MCP's biggest limitation is context consumption. Each MCP server adds tool definitions to your prompt:
+
+- 5 MCP servers: ~55,000 tokens
+- Enterprise setups: 100,000-134,000 tokens
+
+That's half of Claude's context window before you've written a single line of code. Meanwhile, the `gh` CLI for GitHub operations uses essentially zero tokens.
+
+<Callout type="info">
+A benchmark study found CLI tools use 98.7% fewer tokens than equivalent MCP integrations.
+</Callout>
+
+## Why CLI Tools Win
+
+AI models are already trained on common CLI tools. When Claude uses `git`, `npm`, or `gh`, it's leveraging patterns seen millions of times during training:
+
+1. **Zero token overhead**: Tool definitions aren't needed
+2. **Predictable behavior**: Deterministic, well-documented commands
+3. **Error handling built-in**: Exit codes and stderr are familiar patterns
+4. **Composable**: Unix philosophy works naturally
+
+```bash
+# MCP approach: Define server, authenticate, consume tokens
+# CLI approach: Just run the command
+gh pr create --title "Fix bug" --body "Description"
+```
+
+## When MCP Makes Sense
+
+MCP isn't wrong—it solves real problems:
+
+- **Stateful tools**: Database connections, authenticated sessions
+- **No CLI exists**: Proprietary APIs without command-line interfaces
+- **No shell access**: Web-based AI interfaces
+
+But if a good CLI exists, use it directly.
+
+## Agent Skills: Progressive Disclosure
+
+Claude Code's Skills system takes a different approach. Instead of loading all tool definitions upfront, skills use progressive disclosure:
+
+- **Metadata**: ~100 tokens (just enough to identify relevance)
+- **Instructions**: Loaded on-demand (<5,000 tokens)
+- **Execution**: Runs when needed
+
+This achieves 73% reduction in repetitive prompt engineering according to Anthropic's benchmarks. Skills are markdown files—anyone can write them without coding.
+
+<Callout type="tip">
+Skills are model-portable. The same skill works across different Claude contexts, unlike MCP servers tied to specific integrations.
+</Callout>
+
+## The Practical Hierarchy
+
+When building AI coding workflows:
+
+1. **Native CLI first**: `git`, `npm`, `docker`, `gh`, platform CLIs
+2. **Skills second**: Reusable workflows, domain expertise, organization patterns
+3. **MCP last**: Only when CLI/Skills can't solve the problem
+
+## Real-World Example
+
+Consider GitHub operations:
+
+| Approach | Token Cost | Reliability | Speed |
+|----------|------------|-------------|-------|
+| MCP GitHub Server | ~10,000 tokens | Variable | Slower |
+| `gh` CLI | 0 tokens | 100% | Fast |
+
+The CLI wins on every metric when both options exist.
+
+## Takeaways
+
+- MCP solved an important problem but created new ones (token bloat, security risks)
+- CLI tools leverage model training, costing nothing in context
+- Skills provide reusable workflows without the overhead
+- Choose the right tool for the job—usually the simplest one
+
+The best tool integration is often the one that doesn't require integration at all.
