@@ -8,6 +8,27 @@ draft: false
 
 Snapshot testing catches visual regressions automatically. Here's how to test SwiftUI views across multiple devices and themes efficiently.
 
+## Why Snapshot Testing?
+
+Snapshot testing solves a specific problem: **visual regression detection**. When code changes, you want to know if the UI changed unexpectedly.
+
+### Benefits
+
+1. **Catches unintended changes**: A single property update can break multiple screens
+2. **Documents expected appearance**: Reference images serve as visual documentation
+3. **Tests multiple configurations automatically**: Device sizes, dark mode, accessibility sizes
+4. **Fast feedback**: Run hundreds of visual checks in seconds
+
+### When NOT to Use Snapshots
+
+- **Frequently changing designs**: You'll spend more time updating snapshots than catching bugs
+- **User interaction testing**: Use XCUITest for flows and gestures
+- **Business logic**: Unit tests are faster and more precise
+
+<Callout type="tip">
+Snapshot testing complements—not replaces—unit and UI testing.
+</Callout>
+
 ## Setup
 
 Install swift-snapshot-testing:
@@ -167,12 +188,44 @@ Or in code:
 isRecording = true
 ```
 
+## Debugging Failed Snapshots
+
+When a snapshot fails, swift-snapshot-testing creates a diff showing exactly what changed:
+
+```
+__Snapshots__/
+├── testLoginButton.login_Light.png           # Reference
+├── testLoginButton.login_Light.1.png         # Actual (new)
+└── testLoginButton.login_Light.diff.png      # Visual diff
+```
+
+### Common Causes
+
+1. **Simulator version mismatch**: Different iOS versions render fonts differently
+2. **Animation timing**: Async animations can capture mid-transition states
+3. **Dynamic content**: Dates, random IDs, or live data appearing in snapshots
+
+### Handling Dynamic Content
+
+Inject fixed values for non-deterministic content:
+
+```swift
+func testTimestamp() {
+    // Inject fixed date instead of Date()
+    let fixedDate = Date(timeIntervalSince1970: 1704067200)
+    let view = TimestampView(date: fixedDate)
+    assertSnapshot(of: view, as: .image)
+}
+```
+
+For animations, disable them in your test base class (already shown above).
+
 ## Directory Structure
 
 Snapshots organize automatically:
 
 ```
-bRadioTests/
+MyAppTests/
 └── Snapshots/
     └── Components/
         └── CircleButtonSnapshotTests/
@@ -191,7 +244,7 @@ Fail on differences:
 - name: Run snapshot tests
   run: |
     xcodebuild test \
-      -scheme bRadio \
+      -scheme MyApp \
       -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
       -resultBundlePath TestResults.xcresult
 ```
@@ -199,6 +252,34 @@ Fail on differences:
 <Callout type="warning">
 Simulator differences can cause false failures. Pin simulator versions in CI.
 </Callout>
+
+## Common Pitfalls
+
+### 1. Adding Package to Wrong Target
+
+swift-snapshot-testing must be added to your **test target**, not your app target.
+
+### 2. Global Configuration Bleeding
+
+With Swift Testing (`@Test`), global state can leak between tests. Use scoped configuration:
+
+```swift
+withSnapshotTesting(record: .missing) {
+    assertSnapshot(of: view, as: .image)
+}
+```
+
+### 3. Simulator Inconsistency
+
+Pin your CI simulator to match local development:
+
+```yaml
+-destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.0'
+```
+
+### 4. Large Snapshot Files
+
+Consider Git LFS for projects with many snapshots. Shopify runs ~2,300 snapshot tests; Spotify runs ~1,600.
 
 ## Quick Reference
 
