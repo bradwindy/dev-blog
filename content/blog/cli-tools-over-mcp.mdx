@@ -51,7 +51,7 @@ But if a good CLI exists, use it directly.
 Claude Code's Skills system takes a different approach. Instead of loading all tool definitions upfront, skills use progressive disclosure:
 
 - **Metadata**: ~100 tokens (just enough to identify relevance)
-- **Instructions**: Loaded on-demand (<5,000 tokens)
+- **Instructions**: Loaded on-demand (under 5,000 tokens)
 - **Execution**: Runs when needed
 
 This achieves 73% reduction in repetitive prompt engineering according to Anthropic's benchmarks. Skills are markdown files—anyone can write them without coding.
