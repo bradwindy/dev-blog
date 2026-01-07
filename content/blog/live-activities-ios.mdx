@@ -8,6 +8,42 @@ draft: false
 
 Live Activities display real-time information on the Lock Screen and Dynamic Island. Here's how I implemented them for GPS track recording in TopographicNZ.
 
+## What Are Live Activities?
+
+Live Activities are a way to display real-time, glanceable information from your app on the Lock Screen and Dynamic Island. Unlike widgets, which update on a schedule, Live Activities are event-driven and time-bound.
+
+### How They Differ From Widgets
+
+| Feature | Widgets | Live Activities |
+|---------|---------|-----------------|
+| Updates | Scheduled timeline | Event-driven, real-time |
+| Duration | Persistent | 8 hours max (+ 4 hours ended state) |
+| Location | Home Screen, Today View | Lock Screen, Dynamic Island |
+| Use case | At-a-glance info | Active, time-sensitive events |
+
+### Dynamic Island Regions
+
+The Dynamic Island has three presentation modes:
+
+1. **Compact**: Small leading and trailing areas when multiple activities run
+2. **Expanded**: Full view when user long-presses or during transitions
+3. **Minimal**: Tiny indicator when your activity isn't the primary one
+
+<Callout type="info">
+For minimal presentation, keep images under 45×36.67 points. Larger images fail silently.
+</Callout>
+
+### Update Mechanisms
+
+Live Activities can be updated two ways:
+
+1. **Direct updates**: Your app updates the activity while running
+2. **Push notifications**: Server-initiated updates via APNs with special headers
+
+For push updates, use these APNs headers:
+- `apns-topic: <bundle-id>.push-type.liveactivity`
+- `apns-push-type: liveactivity`
+
 ## What You'll Build
 
 A Live Activity showing:
@@ -177,6 +213,16 @@ func stopRecording() async {
 - **Size limits**: Keep content state under 4KB
 - **Duration**: Activities auto-end after 8 hours
 - **Widget extension**: Live Activities run in the extension process, not your app
+
+## Why Live Activities Matter
+
+Real-world data shows significant engagement improvements:
+
+- **23.7% higher retention** for apps using Live Activities
+- **50% more sessions** for food delivery tracking apps
+- **Uber reported** 2.26% reduction in driver cancellations
+
+Users appreciate glanceable status without opening the app.
 
 ## Full Code
 
