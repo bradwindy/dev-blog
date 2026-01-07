@@ -13,11 +13,11 @@ UI tests are notoriously fragile. A button moves, a label changes, and suddenly 
 Without Page Objects, tests look like this:
 
 ```swift
-func testPlayerFlow() {
-    app.buttons["95bFM"].tap()
-    app.buttons["play.circle.fill"].tap()
-    XCTAssertTrue(app.staticTexts["Now Playing"].exists)
-    app.buttons["list.bullet"].tap()
+func testLoginFlow() {
+    app.buttons["loginButton"].tap()
+    app.buttons["submitButton"].tap()
+    XCTAssertTrue(app.staticTexts["Welcome"].exists)
+    app.buttons["menuButton"].tap()
     // ... more element queries scattered everywhere
 }
 ```
@@ -38,28 +38,28 @@ class HomeScreen {
     }
 
     // Elements
-    var stationButton95bFM: XCUIElement {
-        app.buttons[AccessibilityIdentifiers.Home.stationButton("95bFM")]
+    var primaryButton: XCUIElement {
+        app.buttons[AccessibilityIdentifiers.Home.primaryButton]
     }
 
-    var nowPlayingBar: XCUIElement {
-        app.otherElements[AccessibilityIdentifiers.Home.nowPlayingBar]
+    var statusBar: XCUIElement {
+        app.otherElements[AccessibilityIdentifiers.Home.statusBar]
     }
 
     // Actions
-    func selectStation(_ name: String) -> PlayerScreen {
-        app.buttons[AccessibilityIdentifiers.Home.stationButton(name)].tap()
-        return PlayerScreen(app: app)
+    func tapPrimaryAction() -> DetailScreen {
+        primaryButton.tap()
+        return DetailScreen(app: app)
     }
 
-    func tapNowPlayingBar() -> PlayerScreen {
-        nowPlayingBar.tap()
-        return PlayerScreen(app: app)
+    func tapStatusBar() -> DetailScreen {
+        statusBar.tap()
+        return DetailScreen(app: app)
     }
 
     // Verification
     func verifyOnScreen() {
-        XCTAssertTrue(stationButton95bFM.waitForExistence(timeout: 5))
+        XCTAssertTrue(primaryButton.waitForExistence(timeout: 5))
     }
 }
 ```
@@ -67,16 +67,16 @@ class HomeScreen {
 Now tests read like user stories:
 
 ```swift
-func testPlayerFlow() {
+func testDetailFlow() {
     let homeScreen = HomeScreen(app: app)
     homeScreen.verifyOnScreen()
 
-    let playerScreen = homeScreen.selectStation("95bFM")
-    playerScreen.verifyOnScreen()
-    playerScreen.tapPlay()
+    let detailScreen = homeScreen.tapPrimaryAction()
+    detailScreen.verifyOnScreen()
+    detailScreen.tapAction()
 
-    let trackList = playerScreen.openTrackList()
-    trackList.verifyOnScreen()
+    let settings = detailScreen.openSettings()
+    settings.verifyOnScreen()
 }
 ```
 
@@ -88,29 +88,28 @@ Define identifiers in one place:
 // AccessibilityIdentifiers.swift
 enum AccessibilityIdentifiers {
     enum Home {
-        static let nowPlayingBar = "home.nowPlayingBar"
-        static func stationButton(_ station: String) -> String {
-            "home.station.\(station)"
-        }
+        static let primaryButton = "home.primaryButton"
+        static let secondaryButton = "home.secondaryButton"
+        static let statusBar = "home.statusBar"
     }
 
-    enum Player {
-        static let playButton = "player.playButton"
-        static let pauseButton = "player.pauseButton"
-        static let trackListButton = "player.trackListButton"
+    enum Detail {
+        static let actionButton = "detail.actionButton"
+        static let closeButton = "detail.closeButton"
+        static let contentView = "detail.contentView"
     }
 
-    enum TrackList {
-        static let collectionView = "trackList.collectionView"
-        static func trackRow(_ id: String) -> String {
-            "trackList.row.\(id)"
+    enum Settings {
+        static let tableView = "settings.tableView"
+        static func settingRow(_ id: String) -> String {
+            "settings.row.\(id)"
         }
     }
 }
 ```
 
 <Callout type="tip">
-Use descriptive, hierarchical identifiers. `player.playButton` is easier to debug than `btn1`.
+Use descriptive, hierarchical identifiers. `detail.actionButton` is easier to debug than `btn1`.
 </Callout>
 
 ## Base Test Class
@@ -170,7 +169,7 @@ var volumeSlider: XCUIElement {
 Some views need custom dismiss gestures:
 
 ```swift
-func dismissTrackList() {
+func dismissModal() {
     let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2))
     let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.9))
     start.press(forDuration: 0.1, thenDragTo: end)
@@ -182,19 +181,19 @@ func dismissTrackList() {
 Structure tests by user flow:
 
 ```
-bRadioUITests/
+MyAppUITests/
 ├── Base/
 │   └── BaseTest.swift
 ├── PageObjects/
 │   ├── HomeScreen.swift
-│   ├── PlayerScreen.swift
-│   └── TrackListScreen.swift
+│   ├── DetailScreen.swift
+│   └── SettingsScreen.swift
 ├── Helpers/
 │   └── AccessibilityIdentifiers.swift
 └── Tests/
     ├── NavigationTests.swift
-    ├── PlayerTests.swift
-    └── TrackListTests.swift
+    ├── DetailTests.swift
+    └── SettingsTests.swift
 ```
 
 ## Benefits
@@ -210,4 +209,4 @@ Page Objects add initial setup time, but pay off quickly as your test suite grow
 
 ## Full Implementation
 
-See the complete pattern in [bRadio on GitHub](https://github.com/bradleywilson/bRadio).
+Apply this pattern to any iOS app with UI tests.
