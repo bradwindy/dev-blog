@@ -63,6 +63,19 @@
     {
       "groupName": "Remark plugins",
       "matchPackageNames": ["/^remark-/"]
+    },
+    {
+      "description": "Stable, feature-complete packages - disable abandonment warnings",
+      "matchPackageNames": [
+        "class-variance-authority",
+        "clsx",
+        "gray-matter",
+        "reading-time",
+        "rehype-autolink-headings",
+        "rehype-slug",
+        "remark-frontmatter"
+      ],
+      "abandonmentThreshold": null
     }
   ]
 }
