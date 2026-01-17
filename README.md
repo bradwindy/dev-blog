@@ -157,6 +157,45 @@ npm run start    # Start production server
 npm run lint     # Run ESLint
 ```
 
+## Testing
+
+This project uses Vitest for unit/component tests and Playwright for E2E tests.
+
+### Running Tests
+
+```bash
+# Run unit and component tests
+npm test
+
+# Run tests in watch mode
+npm test
+
+# Run tests once (CI mode)
+npm run test:run
+
+# Run with UI
+npm run test:ui
+
+# Run with coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+
+# Run E2E tests with UI
+npm run test:e2e:ui
+```
+
+### Test Structure
+
+- `__tests__/lib/` - Unit tests for library modules
+- `__tests__/components/` - Component tests with Testing Library
+- `e2e/` - Playwright E2E tests
+
+### CI
+
+Tests run automatically on all PRs via GitHub Actions. Both unit tests and E2E tests must pass before merging.
+
 ## Deployment
 
 ### Deploy to Vercel
