@@ -1,77 +1,50 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
-  "labels": [
-    "dependencies"
-  ],
+  "extends": ["config:recommended"],
+  "labels": ["dependencies"],
   "rangeStrategy": "pin",
+  "schedule": ["before 9am on monday"],
   "packageRules": [
     {
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
+      "matchUpdateTypes": ["minor", "patch"],
       "automerge": true,
       "automergeType": "branch"
     },
     {
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
       "groupName": "React",
-      "matchPackageNames": [
-        "/^react/",
-        "/^@types/react/"
-      ]
+      "matchPackageNames": ["/^react/", "/^@types/react/"]
     },
     {
       "groupName": "Next.js",
-      "matchPackageNames": [
-        "/^next/",
-        "/^@next//",
-        "/^eslint-config-next/"
-      ]
+      "matchPackageNames": ["/^next/", "/^@next//", "/^eslint-config-next/"]
     },
     {
       "groupName": "MDX",
-      "matchPackageNames": [
-        "/^@mdx-js//",
-        "/^@next/mdx/",
-        "/^@types/mdx/"
-      ]
+      "matchPackageNames": ["/^@mdx-js//", "/^@next/mdx/", "/^@types/mdx/"]
     },
     {
       "groupName": "Tailwind CSS",
-      "matchPackageNames": [
-        "/^tailwindcss/",
-        "/^@tailwindcss//"
-      ]
+      "matchPackageNames": ["/^tailwindcss/", "/^@tailwindcss//"]
     },
     {
       "groupName": "Radix UI",
-      "matchPackageNames": [
-        "/^@radix-ui//"
-      ]
+      "matchPackageNames": ["/^@radix-ui//"]
     },
     {
       "groupName": "Vercel",
-      "matchPackageNames": [
-        "/^@vercel//"
-      ]
+      "matchPackageNames": ["/^@vercel//"]
     },
     {
       "groupName": "Rehype plugins",
-      "matchPackageNames": [
-        "/^rehype-/"
-      ]
+      "matchPackageNames": ["/^rehype-/"]
     },
     {
       "groupName": "Remark plugins",
-      "matchPackageNames": [
-        "/^remark-/"
-      ]
+      "matchPackageNames": ["/^remark-/"]
     }
-  ],
-  "schedule": [
-    "before 9am on monday"
   ]
 }
