@@ -15,7 +15,7 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@atproto/api": "0.18.16",
+    "@atproto/api": "0.18.17",
     "@mdx-js/loader": "3.1.1",
     "@mdx-js/react": "3.1.1",
     "@next/mdx": "16.1.3",
