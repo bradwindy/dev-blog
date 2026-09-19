@@ -20,7 +20,7 @@ vi.mock('fs', () => ({
 import fs from 'fs'
 
 const mockExistsSync = vi.mocked(fs.existsSync)
-const mockReaddirSync = vi.mocked(fs.readdirSync)
+const mockReaddirSync = vi.mocked(fs.readdirSync as (path: fs.PathLike) => string[])
 const mockReadFileSync = vi.mocked(fs.readFileSync)
 
 // Sample MDX content for testing
@@ -80,7 +80,7 @@ describe('lib/posts', () => {
       expect(result?.frontmatter.title).toBe('Hello World')
       expect(result?.frontmatter.description).toBe('An introduction post')
       // gray-matter parses dates as Date objects
-      expect(new Date(result?.frontmatter.publishedAt).toISOString()).toBe('2026-01-01T00:00:00.000Z')
+      expect(new Date(result!.frontmatter.publishedAt).toISOString()).toBe('2026-01-01T00:00:00.000Z')
       expect(result?.frontmatter.tags).toEqual(['intro', 'welcome'])
       expect(result?.content).toContain('sample content')
       expect(result?.readingTime).toBeDefined()
@@ -128,9 +128,9 @@ describe('lib/posts', () => {
   describe('getAllPosts', () => {
     const setupMockPosts = () => {
       mockReaddirSync.mockReturnValue([
-        'post-a.mdx' as unknown as import('fs').Dirent,
-        'post-b.mdx' as unknown as import('fs').Dirent,
-        'draft-post.mdx' as unknown as import('fs').Dirent,
+        'post-a.mdx',
+        'post-b.mdx',
+        'draft-post.mdx',
       ])
 
       mockExistsSync.mockReturnValue(true)
@@ -208,9 +208,9 @@ describe('lib/posts', () => {
 
     it('filters out non-mdx files', () => {
       mockReaddirSync.mockReturnValue([
-        'post-a.mdx' as unknown as import('fs').Dirent,
-        'readme.txt' as unknown as import('fs').Dirent,
-        'image.png' as unknown as import('fs').Dirent,
+        'post-a.mdx',
+        'readme.txt',
+        'image.png',
       ])
       mockReadFileSync.mockReturnValue(
         createMockMdxContent('Post A', 'Description A', '2026-01-01', ['tag1'])
@@ -241,9 +241,9 @@ describe('lib/posts', () => {
   describe('getPostsByTag', () => {
     beforeEach(() => {
       mockReaddirSync.mockReturnValue([
-        'react-post.mdx' as unknown as import('fs').Dirent,
-        'typescript-post.mdx' as unknown as import('fs').Dirent,
-        'both-post.mdx' as unknown as import('fs').Dirent,
+        'react-post.mdx',
+        'typescript-post.mdx',
+        'both-post.mdx',
       ])
 
       mockExistsSync.mockReturnValue(true)
@@ -303,9 +303,9 @@ describe('lib/posts', () => {
   describe('getAllTags', () => {
     beforeEach(() => {
       mockReaddirSync.mockReturnValue([
-        'post-1.mdx' as unknown as import('fs').Dirent,
-        'post-2.mdx' as unknown as import('fs').Dirent,
-        'post-3.mdx' as unknown as import('fs').Dirent,
+        'post-1.mdx',
+        'post-2.mdx',
+        'post-3.mdx',
       ])
 
       mockExistsSync.mockReturnValue(true)
@@ -359,7 +359,7 @@ describe('lib/posts', () => {
 
     it('normalizes tags to lowercase', () => {
       mockReaddirSync.mockReturnValue([
-        'post-1.mdx' as unknown as import('fs').Dirent,
+        'post-1.mdx',
       ])
       mockReadFileSync.mockReturnValue(
         createMockMdxContent('Post', 'Desc', '2026-01-01', ['React', 'REACT', 'react'])
@@ -384,11 +384,11 @@ describe('lib/posts', () => {
   describe('getRelatedPosts', () => {
     beforeEach(() => {
       mockReaddirSync.mockReturnValue([
-        'current-post.mdx' as unknown as import('fs').Dirent,
-        'related-1.mdx' as unknown as import('fs').Dirent,
-        'related-2.mdx' as unknown as import('fs').Dirent,
-        'unrelated.mdx' as unknown as import('fs').Dirent,
-        'highly-related.mdx' as unknown as import('fs').Dirent,
+        'current-post.mdx',
+        'related-1.mdx',
+        'related-2.mdx',
+        'unrelated.mdx',
+        'highly-related.mdx',
       ])
 
       mockExistsSync.mockReturnValue(true)
@@ -485,12 +485,12 @@ describe('lib/posts', () => {
     it('uses default limit of 3', () => {
       // Add more related posts to test default limit
       mockReaddirSync.mockReturnValue([
-        'current-post.mdx' as unknown as import('fs').Dirent,
-        'related-1.mdx' as unknown as import('fs').Dirent,
-        'related-2.mdx' as unknown as import('fs').Dirent,
-        'related-3.mdx' as unknown as import('fs').Dirent,
-        'related-4.mdx' as unknown as import('fs').Dirent,
-        'related-5.mdx' as unknown as import('fs').Dirent,
+        'current-post.mdx',
+        'related-1.mdx',
+        'related-2.mdx',
+        'related-3.mdx',
+        'related-4.mdx',
+        'related-5.mdx',
       ])
 
       mockReadFileSync.mockImplementation((filePath) => {
@@ -514,8 +514,8 @@ describe('lib/posts', () => {
 
     it('matches tags case-insensitively', () => {
       mockReaddirSync.mockReturnValue([
-        'current.mdx' as unknown as import('fs').Dirent,
-        'related.mdx' as unknown as import('fs').Dirent,
+        'current.mdx',
+        'related.mdx',
       ])
 
       mockReadFileSync.mockImplementation((filePath) => {

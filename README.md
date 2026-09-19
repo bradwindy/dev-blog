@@ -194,6 +194,8 @@ npm run test:e2e:ui
 
 ### CI
 
+Run `npm run typecheck` to check application and test types independently of the Next.js build. Filesystem mocks use the string-returning overload used by the application.
+
 Tests run automatically on all PRs via GitHub Actions. Both unit tests and E2E tests must pass before merging.
 
 ## Deployment
