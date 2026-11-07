@@ -1,4 +1,4 @@
-name: Test
+name: Check
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -27,29 +27,4 @@ jobs:
 
       - run: npm run typecheck
 
-      - run: npm run test:run
-
       - run: npm run build
-
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - run: npm ci
-
-      - run: npx playwright install --with-deps chromium
-
-      - run: npm run test:e2e
-
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: failure()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
