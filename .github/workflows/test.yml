@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master]
   push:
-    branches: [master, 'renovate/**']
+    branches: [master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
