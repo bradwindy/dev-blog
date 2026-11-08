@@ -13,7 +13,6 @@
   ],
   "minimumReleaseAge": "3 days",
   "osvVulnerabilityAlerts": true,
-  "rebaseWhen": "conflicted",
   "prConcurrentLimit": 10,
   "lockFileMaintenance": {
     "enabled": true,
@@ -24,21 +23,13 @@
   },
   "packageRules": [
     {
-      "description": "Automerge minor/patch updates",
+      "description": "Automerge minor and patch updates through a PR once the Check workflow passes and the release is 7 days old. Check runs lint, typecheck and the static export build.",
       "matchUpdateTypes": [
         "minor",
         "patch"
       ],
       "automerge": true,
-      "automergeType": "branch",
       "minimumReleaseAge": "7 days"
-    },
-    {
-      "description": "DevDependencies can update faster",
-      "matchDepTypes": [
-        "devDependencies"
-      ],
-      "minimumReleaseAge": "0 days"
     },
     {
       "description": "Require dashboard approval for major updates",
@@ -47,6 +38,11 @@
       ],
       "automerge": false,
       "dependencyDashboardApproval": true
+    },
+    {
+      "description": "0.x updates can break on any bump, so they stay manual.",
+      "matchCurrentVersion": "/^v?[~^]?0\\./",
+      "automerge": false
     },
     {
       "groupName": "React",
@@ -70,5 +66,8 @@
         "/^@tailwindcss//"
       ]
     }
-  ]
+  ],
+  "platformAutomerge": false,
+  "ignoreTests": false,
+  "automergeType": "pr"
 }
