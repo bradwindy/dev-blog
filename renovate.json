@@ -13,7 +13,6 @@
   ],
   "minimumReleaseAge": "3 days",
   "osvVulnerabilityAlerts": true,
-  "rebaseWhen": "conflicted",
   "prConcurrentLimit": 10,
   "lockFileMaintenance": {
     "enabled": true,
@@ -41,11 +40,8 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "0.x minors can break, so they stay manual.",
+      "description": "0.x updates can break on any bump, so they stay manual.",
       "matchCurrentVersion": "/^v?[~^]?0\\./",
-      "matchUpdateTypes": [
-        "minor"
-      ],
       "automerge": false
     },
     {
