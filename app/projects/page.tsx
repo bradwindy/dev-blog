@@ -14,7 +14,10 @@ const PROJECTS: Project[] = [
   {
     name: "NZ MCP collection",
     text: "Nine read-only MCP servers on one Cloudflare Worker. They give AI assistants New Zealand public data from GeoNet, LINZ, Stats NZ, Te Papa, NZTA, DigitalNZ and more.",
-    links: [["Source on GitHub", "https://github.com/bradwindy/iolab-mcp-collection"]],
+    links: [
+      ["mcp.windybank.net", "https://mcp.windybank.net/"],
+      ["Source on GitHub", "https://github.com/bradwindy/iolab-mcp-collection"],
+    ],
   },
   {
     name: "NZ Speed Cameras",
@@ -25,7 +28,7 @@ const PROJECTS: Project[] = [
     name: "NZ Images",
     text: "A slideshow of random photos and artwork from New Zealand archives, libraries and museums, pulled from DigitalNZ.",
     links: [
-      ["nzimages.iolab.nz", "https://nzimages.iolab.nz/"],
+      ["nzimages.windybank.net", "https://nzimages.windybank.net/"],
       ["Site source", "https://github.com/bradwindy/nzimage-web"],
       ["API source", "https://github.com/bradwindy/nzimageapi-lambda"],
     ],
@@ -82,11 +85,6 @@ export default function Projects() {
       {GAMES.map((p) => (
         <Entry key={p.name} project={p} as="h3" />
       ))}
-      <h2 className="sec">More at IOLab</h2>
-      <p>IOLab is where I put my weirder experiments and side projects.</p>
-      <div className="links">
-        <a href="https://iolab.nz">iolab.nz</a>
-      </div>
     </div>
   );
 }
